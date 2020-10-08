@@ -1,0 +1,43 @@
+version: '3.7'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+
+    webserver:
+        image: pjboundy/cf-spark4-docker-airflow:latest
+        restart: always
+        depends_on:
+            - postgres
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Local
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+        volumes:
+            - ../airflow_src:/usr/local/airflow/dags
+#            - ./plugins:/usr/local/airflow/plugins
+            - ../dars-ingest/target/dars-ingest-1.0-SNAPSHOT.jar:/usr/local/airflow/external_resources/dars-ingest-1.0-SNAPSHOT.jar
+#            - ./external_resources:/usr/local/airflow/external_resources
+#            - /Users/patrickboundy/Downloads/NIC243790_HES_AE_201599.zip:/usr/local/airflow/external_resources/NIC243790_HES_AE_201599.zip
+            - ../dars-ingest/hes_zips:/usr/local/airflow/input_data
+            - ../dars-ingest/hes_output:/usr/local/airflow/output_data
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
