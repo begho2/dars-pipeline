@@ -57,12 +57,14 @@ class TestDagImport(unittest.TestCase):
                     # wait_time = wait_time + (5 * 60)
                     zipToParq = CfSparkSubmitOperator(filename=f, filelocation=dir, sample="100")
                     ti = TaskInstance(task=zipToParq, execution_date=datetime.now())
-                    result = zipToParq.execute(ti.get_template_context())
+
+                    # result = zipToParq.execute(ti.get_template_context())
+
                     # zipToParq..run()
                     # parqValidate = DummyOperator(task_id=f"Validate_{f.strip('.zip')}.parq")
                     # waiter >> zipToParq >> parqValidate
 
-        dag.run()
+        # dag.run()
 
 
 if __name__ == '__main__':
