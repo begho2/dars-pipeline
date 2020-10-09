@@ -21,6 +21,8 @@ cd into the project and setup up the python virtual environment
 This reads the Pipfile and creates a pipfile.lock, and installs everything in the Pipfile
 It is slow the first time you run it and will create a new virtual python environment hidden away somewhere. 
 You do not need a requirements.txt as well (although it is easy to interchange between the two and use tools to keep them in sync)
+However, creating requirements.txt is helpful for when running pytest from github actions: pipenv lock -r > requirements.txt
+otherwise the pipenv install phase is very slow generating the lock file.
 
 Now you can run:
  
