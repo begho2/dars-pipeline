@@ -17,6 +17,7 @@ class TestDagImport(unittest.TestCase):
         dags = [file for file in glob.iglob(dag_dir + '/**/*.py', recursive=True) if ~file.endswith("__init__.py")]
         # dags = [file for file in listdir_recursive(dag_dir)]
         failures = []
+        print(f"for dag dir [{dag_dir}], found {dags}")
 
         os.environ['TEST_INPUT']=f'{Path(__file__).resolve().parents[1]}/dars-ingest/hes_zips'
         for d in dags:
