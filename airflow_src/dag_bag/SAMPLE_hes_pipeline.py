@@ -29,15 +29,14 @@ filename = "NIC243790_HES_AE_201599.zip"
 wait_time = 0
 
 with dag:
-    f = filename
-    if (f.endswith(".zip")):
+    if (filename.endswith(".zip")):
         # delta = timedelta(minutes=wait_time)
-        key = f.strip(".zip")
-        waiter = BashOperator(task_id=f"Wait_{wait_time}", bash_command=f"sleep {wait_time}")
+        key = filename.strip(".zip")
         get_zip = DummyOperator(task_id=f"Download_{key}")
         push_to_postgres = DummyOperator(task_id=f"Load_postgres_{key}")
         postgres_validate = DummyOperator(task_id=f"Validate_postgres_{key}")
-        wait_time = wait_time + (5 * 60)
-        zipToParq = CfSparkSubmitOperator(filename=f, filelocation=dir, sample="100")
+        zipToParq = CfSparkSubmitOperator(filename=filename, filelocation=dir, sample="100")
         parqValidate = DummyOperator(task_id=f"Validate_{key}.parq")
-        waiter >> get_zip >> zipToParq >> parqValidate >> push_to_postgres >> postgres_validate
+        get_zip >> zipToParq >> parqValidate >> push_to_postgres >> postgres_validate
+    else:
+        raise Exception(f"trying to process file that is not a zip: {filename}")
