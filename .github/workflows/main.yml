@@ -1,4 +1,4 @@
-name: PJB Test
+name: Python tests
 on: [push]
 jobs:
   pytest:
@@ -19,3 +19,4 @@ jobs:
 #       - run: pip install pytest-pythonpath
 #       - run: pip install pipenv
       - run: pytest
+
