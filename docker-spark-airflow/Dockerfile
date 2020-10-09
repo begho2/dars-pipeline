@@ -4,9 +4,11 @@
 #https://hub.docker.com/_/python - python base images
   #need to understand alipine vs debian vs buster vs slim.
 #https://github.com/puckel/docker-airflow/issues/182 - trick for getting openjdk8 on debian image
+# another dockerfile entrypoint setup = https://github.com/GitaiQAQ/docker-airflow-with-spark/blob/master/script/entrypoint.sh
+
 
 FROM python:3.7-slim-buster
-# LABEL maintainer="pjboundy"
+
 
 # COPY --from=pjbspark $SPARK_HOME $SPARK_HOME
 #ENV PATH $PATH:${SPARK_HOME}/bin

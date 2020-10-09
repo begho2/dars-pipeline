@@ -15,6 +15,14 @@ Command line to look at logs
  docker exec -ti docker-spark-airflow_webserver_1 /bin/bash
  cd logs
 
+To stop the docker compose env, replace 'up -d' with 'kill'
+The volumes (data) is perserved in the container. If you want to create
+new data (containers) use some combination of the following:
+ 
+ * docker-compose rm -f 
+ * docker-compose pull
+ * docker-compose up --build -d
+
 ## Usage
 
 By default, docker-airflow runs Airflow with **SequentialExecutor** :

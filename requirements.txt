@@ -1,9 +1,0 @@
-numpy==1.18.2
-pandas==1.0.3
-pyspark==3.0.0
-pytest==5.4.3
-requests==2.23.0
-seaborn==0.10.1
-zipp==3.1.0
-apache-airflow==1.10.12
-boto3

@@ -16,7 +16,7 @@ default_arguments = {
     'start_date': datetime(2020,6, 26)
 }
 
-hes_dag = DAG(os.path.basename(__file__), default_args=default_arguments, schedule_interval='* * 1 * *')
+# hes_dag = DAG(os.path.basename(__file__), default_args=default_arguments, schedule_interval='* * 1 * *')
 
 import os
 # import boto3
