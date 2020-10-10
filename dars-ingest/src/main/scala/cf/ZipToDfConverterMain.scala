@@ -19,12 +19,14 @@ object ZipToDfConverterMain extends SparkSessionWrapper {
     val limit = if (args.length > 0) args(0) else 0
     val inputPath = if (args.length > 1) args(1) else throw new RuntimeException("no inputpath given")
     val outputDir = if (args.length > 2) args(2) else throw new RuntimeException("no outputDir given")
-    val (dir,inputFilename) = ZipToDfConverter.get_filename_and_dir(inputPath)
-    val df = ZipToDfConverter.exportZipToParq(inputFilename, dir, s"${outputDir}/${inputFilename.stripSuffix(".zip")}.parq", 0)(spark)
-//    df.show(false)
+    val inputFilename = inputPath.split("/").takeRight(1).head
+    val outputPath = s"${outputDir}/${inputFilename.stripSuffix(".zip")}"
+    val df = ZipToDfConverter.exportZipToParq(inputPath, s"${outputPath}.parq", 100L)(spark)
+    log.info(s"Finished writing parq to ${outputPath}")
+    df.show(false)
 ////    ColumnProfileRunner
 //    print("\n")
-//    print(s"Count is ${df.count()}\n")
+    print(s"Count is ${df.count()}\n")
 
   }
 

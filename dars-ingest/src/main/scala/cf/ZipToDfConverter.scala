@@ -12,39 +12,11 @@ import org.apache.spark.sql.functions._
 
 object ZipToDfConverter  {
 
-  def exportZipToParq(filename: String, zipLocation: String, parqLocation: String, limit: Int = 0)(implicit sparkSession: SparkSession) ={
-    val df = exportZipToDf(filename, zipLocation, limit)
+  def exportZipToParq(zipPath: String, parqLocation: String, limit: Long = Long.MaxValue)(implicit sparkSession: SparkSession) ={
+    val df = get_top_n_rows(zipPath, limit)
+    println(s"Writing parq to ${parqLocation} with limit of ${limit}")
     df.write.mode("overwrite").partitionBy("admi_partition").parquet(parqLocation)
     df
-  }
-
-  def exportZipToDf(filename: String, zipLocation: String, limit: Int = 0)(implicit sparkSession: SparkSession) ={
-    val path = s"$zipLocation/$filename"
-    val r = get_rdd_from_zip(path, limit)
-    val header = get_header(path)
-    val df = get_df_from_rdd(r, header, limit)
-    df.withColumn("admi_partition", date_format(to_date(col("ARRIVALDATE"),"yyyy-MM-dd"), "yyyyMM"))
-  }
-
-  /**
-    * Opens the zip file as a PortableDataStream, and then wraps in a ZipInputStream to ensure correct decoding
-    * Each new Entry on the ZipInputStream represents a new file.
-    * We keep reading from that file, reading one line at a time until it is empty; then move to the next entry.
-    * PortableDataStream is zipped so
-    */
-  def get_rdd_from_zip(path: String, limit: Int = 0)(implicit spark: SparkSession)= {
-    var count = 0
-    spark.sparkContext.binaryFiles(path, 10).flatMap {
-      case (name: String, content: PortableDataStream) =>
-        val zis = new ZipInputStream(content.open)
-        Stream.continually(zis.getNextEntry)
-          .takeWhile(_ != null & (if (limit>0) count<limit else true))
-          .flatMap { _ =>
-            count = count + 1
-            val br = new BufferedReader(new InputStreamReader(zis))
-            Stream.continually(br.readLine()).takeWhile(_ != null)
-          }
-    }
   }
 
   /**
@@ -62,30 +34,40 @@ object ZipToDfConverter  {
   }
 
   /**
+    * Read first file from file in zip, and read the first n lines into a dataframe partitioned on suitable date representing admitted date
+    *
+    *
     * This contains lazy evaluated code. default limit returns the whole data set when an action is called on the df
     * Optionally, you can limit the data returned by providing an argument. It is not a random sample - just the first
-    * n rows in the df.
+    * n rows in the df (although it seems the data is not ordered by admitted time - which is helpful).
     */
-  def get_df_from_rdd(r: org.apache.spark.rdd.RDD[String], header: String, limit: Int=0) (implicit spark: SparkSession)= {
+  def get_top_n_rows(path: String, limit: Long = Long.MaxValue)(implicit spark: SparkSession): DataFrame = {
+    // convert zip file to a portableDataStream
+    val (name: String, content: PortableDataStream) = spark.sparkContext.binaryFiles(path, 10).first()
+    // wrap datastream in zipinput stream which can handle the decoding
+    val zis = new ZipInputStream(content.open)
+    // getNextEntry positions the stream at the start of the next entry (file) in the zip
+    // We assume there is a single file (otherwise we would just put this in Stream.continually block
+    zis.getNextEntry
+    // Get the header row then read number of rows prescribed
+    val br = new BufferedReader(new InputStreamReader(zis))
+    val header = br.readLine()
+    var count = 1
+    val stream = Stream.continually(br.readLine()).takeWhile(row => {
+      count = count +1
+      (row != null) && (count <= limit)
+    })
+
+    //
     val separator = "\\|" // this is so we can use split with the optional -1 param, that ensures we preserve trailing elements
-    val limitPredicate = if (limit>0) (e:Tuple2[String, Long])=>e._2 < limit else (e:Any)=>true
+    val rows = stream.map(str => {
+      Row.fromSeq(str.split(separator,-1).map(_.trim))
+    })
+    val rdd = spark.sparkContext.makeRDD(rows.toSeq)
     val col_names = header.split(separator, -1).map(x=>x.toString().trim())
     val schema = StructType(col_names.map(c => StructField(c, StringType)))
-    val resultDF = spark.createDataFrame(
-      r.zipWithIndex
-        .filter(_._2 > 0)
-        .filter(limitPredicate)
-        .map{case (str, _) => Row.fromSeq(str.split(separator,-1).map(_.trim))}
-      ,
-      schema
-    )
-    resultDF
-  }
-
-  def get_filename_and_dir(filePath: String) = {
-    val (dir,filenameWithLeadingSlash) = filePath.splitAt(filePath.lastIndexOf("/"))
-    val inputFilename = filenameWithLeadingSlash.stripPrefix("/")
-    (dir,inputFilename)
+    val df = spark.createDataFrame(rdd, schema)
+    df.withColumn("admi_partition", date_format(to_date(col("ARRIVALDATE"),"yyyy-MM-dd"), "yyyyMM"))
   }
 
 }
