@@ -59,6 +59,7 @@ class TestDagImport(unittest.TestCase):
                     zipToParq = CfSparkSubmitOperator(filename=f, filelocation=dir, sample="100")
                     ti = TaskInstance(task=zipToParq, execution_date=datetime.now())
 
+                    # IN ORDER TO RUN THIS, YOU NEED TO AIRFLOW INITDB. ALSO, SPARK COMMAND WILL FAIL
                     # result = zipToParq.execute(ti.get_template_context())
 
                     # zipToParq..run()

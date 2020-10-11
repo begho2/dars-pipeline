@@ -4,12 +4,17 @@ from airflow.utils.decorators import apply_defaults
 
 class CfSparkSubmitOperator(SparkSubmitOperator):
 
+    template_fields = ('_application', '_conf', '_files', '_py_files', '_jars', '_driver_class_path',
+                       '_packages', '_exclude_packages', '_keytab', '_principal', '_proxy_user', '_name',
+                       '_application_args', '_env_vars', '_driver_memory')
+
     @apply_defaults
     def __init__(self, filename, sample: str = "0", *args, **kwargs):
         runtime_limit = '{{dag_run.conf["limit"] or sample}}'
-        driver_memory = '{{"3g" if sample==0 else "1g"}}'
+        driver_memory = '{{"3g" if dag_run.conf["limit"] else "1g"}}'
         # need to add this if limit is 0 --conf "-- driver-memory 3g --conf spark.memory.fraction=0.1 "
         print(f"\nFound limit {runtime_limit}\n")
+        print(f"\nFound driver_memory {driver_memory}\n")
         super(CfSparkSubmitOperator, self).__init__(
             task_id=f"SparkIngest_{filename[0:-4]}",
             # driver_class_path='some hadoop client stuff. depends where this is run',

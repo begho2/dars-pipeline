@@ -40,3 +40,38 @@ with dag:
         get_zip >> zipToParq >> parqValidate >> push_to_postgres >> postgres_validate
     else:
         raise Exception(f"trying to process file that is not a zip: {filename}")
+
+
+os.environ['DB_URL']="jdbc:postgresql://locahost:5433/"
+os.environ['DB_USER']="airflow"
+os.environ['DB_PASSWORD']="airflow"
+# DB_URL=jdbc:postgresql://dars.asdfasdfasdf`.eu-west-2.rds.amazonaws.com:5432/
+# DB_USER=asdf
+# DB_PASSWORD=asdf
+
+import os
+
+DB_PROPERTIES = {
+    "url": os.environ.get("RDS_URL"),
+    "user": os.environ.get("RDS_USER"),
+    "password": os.environ.get("RDS_PASSWORD"),
+    "schema": "hes",
+    "database": "airflow",
+    "driver": "org.postgresql.Driver"
+}
+
+from pyspark.sql import DataFrame
+
+# @exception_alert
+def data_to_db(data: DataFrame, table_name: str) -> None:
+    db_url = DB_PROPERTIES['url']
+    (data \
+        .write \
+        .option("numPartitions", 8) \
+        .jdbc(
+            url=db_url,
+            table=table_name,
+            mode='append',
+            properties=DB_PROPERTIES
+        )
+    )
