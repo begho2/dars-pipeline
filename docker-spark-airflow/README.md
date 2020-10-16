@@ -22,6 +22,11 @@ new data (containers) use some combination of the following:
  * docker-compose rm -f 
  * docker-compose pull
  * docker-compose up --build -d
+ 
+You may need to also delete the data which may be stored on auto created volumes.
+Run 
+    docker inspect containerid
+    docker volume rm <xyx>
 
 ## Usage
 

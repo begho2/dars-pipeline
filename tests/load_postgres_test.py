@@ -7,6 +7,7 @@ from pathlib import Path
 from airflow import DAG
 from airflow.models import DagBag, TaskInstance
 from airflow.utils.dates import days_ago
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pyspark.sql import DataFrame, SparkSession
 
 from operators.cf_spark_submit_operator import CfSparkSubmitOperator
@@ -38,6 +39,13 @@ def load_data(input_path):
     frame.show(n=5)
     # delete_tmp(zip_location, raw_location)
     return frame
+
+def find_partition_values(df, partition_name):
+    # spark = SparkSession.builder \
+    #     .config(conf=SPARK_CONFIG) \
+    #     .getOrCreate()
+    rows = df.select(partition_name).distinct().collect()
+    return [v[0] for v in rows]
 
 
 def load_df_into_postgres(DB_PROPERTIES, df: DataFrame, table_name: str):
@@ -102,7 +110,22 @@ def createPartitionCreatorFunc(table_name: str, partition_col: str):
     con.commit()
     con.close()
 
-def createMasterTableAndPartitions(DB_PROPERTIES: dict, table_name: str, df: DataFrame, partition_col: str):
+
+def createDbIfNotExist():
+    import psycopg2
+    con = psycopg2.connect(user="airflow", password="airflow", host="localhost", port="5433")
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    print("Database opened successfully")
+    cursor = con.cursor()
+    cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'dars'")
+    exists = cursor.fetchone()
+    if not exists:
+        cursor.execute('CREATE DATABASE dars')
+
+    con.commit()
+    con.close()
+
+def createMasterTable(DB_PROPERTIES: dict, table_name: str, df: DataFrame, partition_col: str):
 
     schema = ""
     not_first = False
@@ -120,7 +143,7 @@ def createMasterTableAndPartitions(DB_PROPERTIES: dict, table_name: str, df: Dat
     # partition_col = "admi_partition"
 #'alter table myTable rename to myTable_old;'
     createTableSql = f"""
-create table {table_name}(
+create table if not exists {table_name} (
     {schema}
 ) partition by list ({partition_col});
     """
@@ -135,13 +158,34 @@ create table {table_name}(
     con.commit()
     con.close()
 
+def createPartitions(DB_PROPERTIES: dict, table_name: str, partition_col: str, partition_values):
+
+
+    import psycopg2
+    con = psycopg2.connect(database="dars", user="airflow", password="airflow", host="localhost", port="5433")
+    print("Database opened successfully")
+    cur = con.cursor()
+
+    for partition in partition_values:
+        create_partition_sql = f"""
+        create table {table_name}_{partition}
+partition of {table_name}
+for values in ({partition});
+        """
+
+        print (f"create partition sql:")
+        print (f"{create_partition_sql}")
+        cur.execute(create_partition_sql)
+        print("Partition created successfully")
+    con.commit()
+    con.close()
 
 
 class TestPostgresLoad(unittest.TestCase):
     def test_load(self):
         pass
 
-    def work_in_progress(self):
+    def work_in_progress_and_actually_working(self):
         # TODO:
         # need to upgrade postgres to same version as obelix and check it doesn't break airflow
         # complete the auto table create an auto partition create
@@ -153,6 +197,8 @@ class TestPostgresLoad(unittest.TestCase):
         # os.environ['TEST_INPUT']=input_path
 
         df: DataFrame = load_data(input_path)
+        partition_name = "admi_partition"
+        partition_vals = find_partition_values(df, partition_name )
 
         import os
         os.environ['DB_URL'] = "jdbc:postgresql://localhost:5433/"
@@ -172,7 +218,9 @@ class TestPostgresLoad(unittest.TestCase):
         }
 
         table_name = "pjb5"
-        createMasterTableAndPartitions(DB_PROPERTIES, table_name, df, "admi_partition")
+        createDbIfNotExist()
+        createMasterTable(DB_PROPERTIES, table_name, df, partition_name)
+        createPartitions(DB_PROPERTIES, table_name, partition_name, partition_vals)
         load_df_into_postgres(DB_PROPERTIES, df,table_name)
         validate_count_and_number_partitions(DB_PROPERTIES, table_name, 100, df.rdd.getNumPartitions())
 
