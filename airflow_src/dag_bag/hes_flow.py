@@ -7,13 +7,15 @@ from airflow.operators.email_operator import EmailOperator
 
 from datetime import datetime, timedelta
 
+from airflow.utils.dates import days_ago
+
 default_arguments = {
     'owner': 'Patrick',
     'email': ['pjboundy@sky.com'],
     # 'email_on_failure': True,
     # 'email_on_retry': False,
     # 'email_on_success': True,
-    'start_date': datetime(2020,6, 26)
+    'start_date': days_ago(1)
 }
 
 hes_dag = DAG(os.path.basename(__file__), default_args=default_arguments, schedule_interval='* * 1 * *')

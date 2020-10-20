@@ -20,7 +20,7 @@ class CfSparkSubmitOperator(SparkSubmitOperator):
             # driver_class_path='some hadoop client stuff. depends where this is run',
             # files='do we need to ship this? if cluster we ship hive.site.xml, and log4j',
             # jars='', -- should not be required. we dont depend on anything else
-            master="local[*]",
+            # master="local[*]",
             # spark_binary='/usr/local/bin/spark-submit',
             # executor and driver config
             # keytab and principal location
