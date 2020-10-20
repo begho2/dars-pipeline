@@ -13,6 +13,8 @@ services:
                 max-file: "3"
         ports:
             - "5433:5432"
+        networks: 
+            - dars_network
 
     webserver:
         image: pjboundy/cf-docker-airflow:latest
@@ -35,6 +37,7 @@ services:
 #            - /Users/patrickboundy/Downloads/NIC243790_HES_AE_201599.zip:/usr/local/airflow/external_resources/NIC243790_HES_AE_201599.zip
             - ../dars-ingest/hes_zips:/usr/local/airflow/input_data
             - ../dars-ingest/hes_output:/usr/local/airflow/output_data
+            - ../tests/:/usr/local/airflow/tests
         ports:
             - "8080:8080"
         command: webserver
@@ -43,3 +46,9 @@ services:
             interval: 30s
             timeout: 30s
             retries: 3
+        networks: 
+            - dars_network
+
+networks:
+  dars_network:
+    external: true
