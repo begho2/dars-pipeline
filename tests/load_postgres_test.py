@@ -179,15 +179,15 @@ class TestPostgresLoad(unittest.TestCase):
         # add to pipeline
         # code tidying (envs, re-use etc)
 
-        input_path=f'{Path(__file__).resolve().parents[1]}/dars-ingest/hes_output/NIC243790_HES_AE_201599.parq'
+        input_path=f'{Path(__file__).resolve().parents[1]}/output_data/NIC243790_HES_AE_201499.parq'
 
         df: DataFrame = load_data(input_path)
         partition_col = "admi_partition"
         partition_vals = find_partition_values(df, partition_col )
 
         DB_PROPERTIES = {
-            "host":"localhost",
-            "port":"5433",
+            "host":"postgres",
+            "port":"5432",
             "url": "jdbc:postgresql://localhost:5433/dars",  # os.environ.get("RDS_URL"),
             "user": "airflow",  # os.environ.get("RDS_USER"),
             "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
