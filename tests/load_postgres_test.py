@@ -32,25 +32,19 @@ def load_data(input_path):
         spark.read \
             .options(header=True, delimiter='|', inferSchema=True) \
             .parquet(input_path)
-        # .schema(schema) \
-        # .csv(CATALOG["local_raw/hes_ae_2014"])
     )
-    #frame = frame.toDF(*[c.lower() for c in frame.columns])
     frame.show(n=5)
-    # delete_tmp(zip_location, raw_location)
     return frame
 
 def find_partition_values(df, partition_name):
-    # spark = SparkSession.builder \
-    #     .config(conf=SPARK_CONFIG) \
-    #     .getOrCreate()
     rows = df.select(partition_name).distinct().collect()
     return [v[0] for v in rows]
 
 
-def load_df_into_postgres(DB_PROPERTIES, df: DataFrame, table_name: str):
-
+def load_df_into_postgres(DB_PROPERTIES, DATA_DETAILS):
     from pyspark.sql import DataFrame
+    table_name = DATA_DETAILS['table_name']
+    df = DATA_DETAILS['df']
     db_url = DB_PROPERTIES['url']
     res = df.write.option("numPartitions", 8).jdbc(
         url=db_url,
@@ -84,7 +78,76 @@ def validate_count_and_number_partitions(DB_PROPERTIES, table_name, expected_row
     print(df_select)
     df_select.show(20)
 
-def createPartitionCreatorFunc(table_name: str, partition_col: str):
+
+def execOnDb(DB_PROPERTIES, DATA_DETAILS, func):
+    import psycopg2
+    con = psycopg2.connect(dbname=DB_PROPERTIES['dbname'], user=DB_PROPERTIES['user'], password=DB_PROPERTIES['password'], host=DB_PROPERTIES['host'], port=DB_PROPERTIES['port'])
+    try:
+        func(con, DATA_DETAILS)
+    # except Exception as e:
+    #     print(f'Failed with {e}')
+    finally:
+        con.commit()
+        con.close()
+
+def createDbIfNotExist(con, DATA_DETAILS: dict):
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    print("Database opened successfully")
+    cursor = con.cursor()
+    cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'dars'")
+    exists = cursor.fetchone()
+    if not exists:
+        cursor.execute('CREATE DATABASE dars')
+
+
+def createMasterTable(con, DATA_DETAILS: dict):
+    # table_name: str, df: DataFrame, partition_col: str):
+    df = DATA_DETAILS['df']
+    table_name = DATA_DETAILS['table_name']
+    partition_col = DATA_DETAILS['partition_col']
+    schema = ""
+    not_first = False
+    for c in df.columns:
+        if (not_first):
+            schema += ",\n"
+        else:
+            not_first = True
+        schema += f"{c} varchar not null"
+
+    createTableSql = f"""
+create table if not exists {table_name} (
+    {schema}
+) partition by list ({partition_col});
+    """
+    print (f"create table sql:")
+    print (f"{createTableSql}")
+    cur = con.cursor()
+    cur.execute(createTableSql)
+    print("Table created successfully")
+
+
+def createPartitions(con, DATA_DETAILS: dict):
+    # table_name: str, df: DataFrame, partition_col: str):
+    df = DATA_DETAILS['df']
+    table_name = DATA_DETAILS['table_name']
+    partition_col = DATA_DETAILS['partition_col']
+    partition_vals = DATA_DETAILS['partition_vals']
+
+    cur = con.cursor()
+
+    for partition in partition_vals:
+        create_partition_sql = f"""
+        create table if not exists {table_name}_{partition}
+partition of {table_name}
+for values in ({partition});
+        """
+        print (f"create partition sql:")
+        print (f"{create_partition_sql}")
+        cur.execute(create_partition_sql)
+        print("Partition created successfully")
+
+
+def createPartitionCreatorFunc(con, DATA_DETAILS: dict):
     createFuncSql = """
         create function createPartitionIfNotExists(tableName varchar, forDate int) returns void
     as $body$
@@ -101,127 +164,49 @@ def createPartitionCreatorFunc(table_name: str, partition_col: str):
     end;
     $body$ language plpgsql; 
         """
-    import psycopg2
-    con = psycopg2.connect(database="dars", user="airflow", password="airflow", host="localhost", port="5433")
-    print("Database opened successfully")
+
     cur = con.cursor()
     cur.execute(createFuncSql)
     print("Func created successfully")
-    con.commit()
-    con.close()
-
-
-def createDbIfNotExist():
-    import psycopg2
-    con = psycopg2.connect(user="airflow", password="airflow", host="localhost", port="5433")
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    print("Database opened successfully")
-    cursor = con.cursor()
-    cursor.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = 'dars'")
-    exists = cursor.fetchone()
-    if not exists:
-        cursor.execute('CREATE DATABASE dars')
-
-    con.commit()
-    con.close()
-
-def createMasterTable(DB_PROPERTIES: dict, table_name: str, df: DataFrame, partition_col: str):
-
-    schema = ""
-    not_first = False
-    for c in df.columns:
-        if (not_first):
-            schema += ",\n"
-        else:
-            not_first = True
-        schema += f"{c} varchar not null"
-    # schema = """
-    #     forDate date not null,
-    #     key2 int not null,
-    #     value int not null,
-    # """
-    # partition_col = "admi_partition"
-#'alter table myTable rename to myTable_old;'
-    createTableSql = f"""
-create table if not exists {table_name} (
-    {schema}
-) partition by list ({partition_col});
-    """
-    print (f"create table sql:")
-    print (f"{createTableSql}")
-    import psycopg2
-    con = psycopg2.connect(database="dars", user="airflow", password="airflow", host="localhost", port="5433")
-    print("Database opened successfully")
-    cur = con.cursor()
-    cur.execute(createTableSql)
-    print("Table created successfully")
-    con.commit()
-    con.close()
-
-def createPartitions(DB_PROPERTIES: dict, table_name: str, partition_col: str, partition_values):
-
-
-    import psycopg2
-    con = psycopg2.connect(database="dars", user="airflow", password="airflow", host="localhost", port="5433")
-    print("Database opened successfully")
-    cur = con.cursor()
-
-    for partition in partition_values:
-        create_partition_sql = f"""
-        create table {table_name}_{partition}
-partition of {table_name}
-for values in ({partition});
-        """
-
-        print (f"create partition sql:")
-        print (f"{create_partition_sql}")
-        cur.execute(create_partition_sql)
-        print("Partition created successfully")
-    con.commit()
-    con.close()
 
 
 class TestPostgresLoad(unittest.TestCase):
     def test_load(self):
         pass
 
-    def work_in_progress_and_actually_working(self):
+    def test_in_progress_and_actually_working(self):
         # TODO:
-        # need to upgrade postgres to same version as obelix and check it doesn't break airflow
-        # complete the auto table create an auto partition create
         # add to pipeline
         # code tidying (envs, re-use etc)
 
         input_path=f'{Path(__file__).resolve().parents[1]}/dars-ingest/hes_output/NIC243790_HES_AE_201599.parq'
 
-        # os.environ['TEST_INPUT']=input_path
-
         df: DataFrame = load_data(input_path)
-        partition_name = "admi_partition"
-        partition_vals = find_partition_values(df, partition_name )
-
-        import os
-        os.environ['DB_URL'] = "jdbc:postgresql://localhost:5433/"
-        os.environ['DB_USER'] = "airflow"
-        os.environ['DB_PASSWORD'] = "airflow"
-        # DB_URL=jdbc:postgresql://dars.asdfasdfasdf`.eu-west-2.rds.amazonaws.com:5432/
-        # DB_USER=asdf
-        # DB_PASSWORD=asdf
+        partition_col = "admi_partition"
+        partition_vals = find_partition_values(df, partition_col )
 
         DB_PROPERTIES = {
+            "host":"localhost",
+            "port":"5433",
             "url": "jdbc:postgresql://localhost:5433/dars",  # os.environ.get("RDS_URL"),
             "user": "airflow",  # os.environ.get("RDS_USER"),
             "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
             "schema": "public",
-            # "database": "dars",
+            "dbname": "dars",
             "driver": "org.postgresql.Driver"
         }
 
-        table_name = "pjb5"
-        createDbIfNotExist()
-        createMasterTable(DB_PROPERTIES, table_name, df, partition_name)
-        createPartitions(DB_PROPERTIES, table_name, partition_name, partition_vals)
-        load_df_into_postgres(DB_PROPERTIES, df,table_name)
+        table_name = "hes_ae_sample"
+        DATA_DETAILS={
+            'df': df,
+            'table_name': table_name,
+            'partition_col': partition_col,
+            'partition_vals': partition_vals
+        }
+        execOnDb(DB_PROPERTIES, DATA_DETAILS, createDbIfNotExist)
+        execOnDb(DB_PROPERTIES, DATA_DETAILS, createMasterTable)
+        execOnDb(DB_PROPERTIES, DATA_DETAILS, createPartitions)
+        load_df_into_postgres(DB_PROPERTIES, DATA_DETAILS)
         validate_count_and_number_partitions(DB_PROPERTIES, table_name, 100, df.rdd.getNumPartitions())
 
 #https://stackoverflow.com/questions/53600144/how-to-migrate-an-existing-postgres-table-to-partitioned-table-as-transparently
