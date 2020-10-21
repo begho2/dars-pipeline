@@ -179,7 +179,7 @@ class TestPostgresLoad(unittest.TestCase):
         # add to pipeline
         # code tidying (envs, re-use etc)
 
-        input_path=f'{Path(__file__).resolve().parents[1]}/output_data/NIC243790_HES_AE_201499.parq'
+        input_path=f'{Path(__file__).resolve().parents[1]}/hes_output/NIC243790_HES_AE_201499.parq'
 
         df: DataFrame = load_data(input_path)
         partition_col = "admi_partition"
@@ -188,7 +188,7 @@ class TestPostgresLoad(unittest.TestCase):
         DB_PROPERTIES = {
             "host":"postgres",
             "port":"5432",
-            "url": "jdbc:postgresql://localhost:5433/dars",  # os.environ.get("RDS_URL"),
+            "url": "jdbc:postgresql://postgres:5432/dars",  # os.environ.get("RDS_URL"),
             "user": "airflow",  # os.environ.get("RDS_USER"),
             "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
             "schema": "public",
