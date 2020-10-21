@@ -32,11 +32,23 @@ object ZipToDfConverterMain extends SparkSessionWrapper {
       print(s"Count is ${df.count()}\n")
     } catch {
       case e: Exception => {
-        e.printStackTrace()
+        println("Got exception")
+        println(s"${e.getMessage}")
+        e.printStackTrace(System.err)
+        e.printStackTrace(System.out)
+        System.err.flush()
+        System.out.flush()
+        println("Desperate debugging complete")
         throw e
       }
       case e: Throwable => {
-        e.printStackTrace()
+        println("Got throwable")
+        println(s"${e.getMessage}")
+        e.printStackTrace(System.err)
+        e.printStackTrace(System.out)
+        System.err.flush()
+        System.out.flush()
+        println("Desperate debugging complete")
         throw e
       }
     }
