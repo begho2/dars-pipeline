@@ -16,8 +16,33 @@ object ZipToDfConverter  {
   def exportZipToParq(zipPath: String, parqLocation: String, limit: Long = Long.MaxValue)(implicit sparkSession: SparkSession) ={
     val df = get_top_n_rows(zipPath, limit)
     println(s"Writing parq to ${parqLocation} with limit of ${limit}, partitioned by ${PARTITION_NAME}")
-    df.write.mode("overwrite").partitionBy(PARTITION_NAME).parquet(parqLocation)
-    df
+
+    try {
+      df.write.mode("overwrite").partitionBy(PARTITION_NAME).parquet(parqLocation)
+      df
+    } catch {
+      case e: Exception => {
+        println("Got exception")
+        println(s"${e.getMessage}")
+        e.printStackTrace(System.err)
+        e.printStackTrace(System.out)
+        System.err.flush()
+        System.out.flush()
+        println("Desperate debugging complete")
+        throw e
+      }
+      case e: Throwable => {
+        println("Got throwable")
+        println(s"${e.getMessage}")
+        e.printStackTrace(System.err)
+        e.printStackTrace(System.out)
+        System.err.flush()
+        System.out.flush()
+        println("Desperate debugging complete")
+        throw e
+      }
+    }
+    
   }
 
   /**
