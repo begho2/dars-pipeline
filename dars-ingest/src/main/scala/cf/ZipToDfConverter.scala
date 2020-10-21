@@ -43,6 +43,7 @@ object ZipToDfConverter  {
     * n rows in the df (although it seems the data is not ordered by admitted time - which is helpful).
     */
   def get_top_n_rows(path: String, limit: Long = Long.MaxValue)(implicit spark: SparkSession): DataFrame = {
+    println(s"Getting top ${limit} rows from ${path}")
     // convert zip file to a portableDataStream
     val (name: String, content: PortableDataStream) = spark.sparkContext.binaryFiles(path, 10).first()
     // wrap datastream in zipinput stream which can handle the decoding
@@ -53,11 +54,16 @@ object ZipToDfConverter  {
     // Get the header row then read number of rows prescribed
     val br = new BufferedReader(new InputStreamReader(zis))
     val header = br.readLine()
-    var count = 1
-    val stream = Stream.continually(br.readLine()).takeWhile(row => {
-      count = count +1
-      (row != null) && (count <= limit)
-    })
+    var count: Long = 1L
+    val stream = limit match {
+      case n: Long if n>0 => {
+        Stream.continually(br.readLine()).takeWhile(row => {
+          count = count +1L
+          (row != null) && (count <= limit)
+        })
+      }
+      case _ => Stream.continually(br.readLine()).takeWhile(row => row != null)
+    }
 
     //
     val separator = "\\|" // this is so we can use split with the optional -1 param, that ensures we preserve trailing elements
