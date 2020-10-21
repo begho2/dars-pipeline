@@ -11,11 +11,12 @@ import org.apache.spark.sql.functions._
 
 
 object ZipToDfConverter  {
+  val PARTITION_NAME = "admi_partition"
 
   def exportZipToParq(zipPath: String, parqLocation: String, limit: Long = Long.MaxValue)(implicit sparkSession: SparkSession) ={
     val df = get_top_n_rows(zipPath, limit)
-    println(s"Writing parq to ${parqLocation} with limit of ${limit}")
-    df.write.mode("overwrite").partitionBy("admi_partition").parquet(parqLocation)
+    println(s"Writing parq to ${parqLocation} with limit of ${limit}, partitioned by ${PARTITION_NAME}")
+    df.write.mode("overwrite").partitionBy(PARTITION_NAME).parquet(parqLocation)
     df
   }
 
@@ -65,9 +66,16 @@ object ZipToDfConverter  {
     })
     val rdd = spark.sparkContext.makeRDD(rows.toSeq)
     val col_names = header.split(separator, -1).map(x=>x.toString().trim())
+    val partitionColChoices = List("ARRIVALDATE","ADMIDATE")
+    val partitionCol = partitionColChoices.collectFirst{
+      case  col: String if col_names.toSet[String].contains(col) => col
+    }
+    if (partitionCol.isEmpty) throw new RuntimeException(s"No matching partition columns candidate found from ${col_names}")
+    println(s"Discovered column ${partitionCol.get} to use for our synthetic Partition colum on parq")
+
     val schema = StructType(col_names.map(c => StructField(c, StringType)))
     val df = spark.createDataFrame(rdd, schema)
-    df.withColumn("admi_partition", date_format(to_date(col("ARRIVALDATE"),"yyyy-MM-dd"), "yyyyMM"))
+    df.withColumn(PARTITION_NAME, date_format(to_date(col(partitionCol.get),"yyyy-MM-dd"), "yyyyMM"))
   }
 
 }
