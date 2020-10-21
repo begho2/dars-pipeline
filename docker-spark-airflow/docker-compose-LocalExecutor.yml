@@ -37,7 +37,6 @@ services:
 #            - /Users/patrickboundy/Downloads/NIC243790_HES_AE_201599.zip:/usr/local/airflow/external_resources/NIC243790_HES_AE_201599.zip
             - ../dars-ingest/hes_zips:/usr/local/airflow/input_data
             - ../dars-ingest/hes_output:/usr/local/airflow/output_data
-            - ../tests/:/usr/local/airflow/tests
         ports:
             - "8080:8080"
         command: webserver
