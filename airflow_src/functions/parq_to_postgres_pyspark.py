@@ -188,11 +188,12 @@ def createPartitionCreatorFunc(con, DATA_DETAILS: dict):
     print("Func created successfully")
 
 def exec():
-    # input_path = f'{Path(__file__).resolve().parents[2]}/dars-ingest/hes_output/NIC243790_HES_AE_201599.parq'
-    input_path = f'{Path(__file__).resolve().parents[2]}/output_data/NIC243790_HES_AE_201599.parq'
+    input_path = f'{Path(__file__).resolve().parents[2]}/hes_output/NIC243790_HES_AE_201599.parq'
+    # input_path = f'{Path(__file__).resolve().parents[2]}/output_data/NIC243790_HES_AE_201499.parq'
     # input_path = 'output_data/NIC243790_HES_AE_201599.parq'
 
     df: DataFrame = load_data(input_path)
+    print(f"Parquet Length: {df.count()}")
     partition_col = "admi_partition"
     partition_vals = find_partition_values(df, partition_col)
 
@@ -200,12 +201,12 @@ def exec():
     port = "5432" if is_docker else "5433"
 
     DB_PROPERTIES = {
-        "host": "localhost",
-        "port": "5433",
-        "url": "jdbc:postgresql://localhost:5433/dars",  # os.environ.get("RDS_URL"),
+        "host": "postgres",
+        "port": "5432",
+        "url": "jdbc:postgresql://postgres:5432/dars",  # os.environ.get("RDS_URL"),
         "user": "airflow",  # os.environ.get("RDS_USER"),
         "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
-        "schema": "public",
+        "schema": "hes",
         "dbname": "dars",
         "driver": "org.postgresql.Driver"
     }

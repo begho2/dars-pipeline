@@ -24,7 +24,7 @@ dag = DAG(os.path.basename(__file__),
 # dir = "/Users/patrickboundy/Downloads"
 print(os.environ.get('TEST_INPUT'))
 dir = os.environ.get('TEST_INPUT') if os.environ.get('TEST_INPUT') else "./input_data"
-filename = "NIC243790_HES_AE_201599.zip"
+filename = "NIC243790_HES_AE_201499.zip"
 
 
 wait_time = 0
@@ -37,7 +37,8 @@ with dag:
             task_id=f"Parq_to_postgres_{key}",
             application="/usr/local/airflow/dags/functions/parq_to_postgres_pyspark.py",
             # conn_id='spark_local',
-            # master="local[2]"
+            master="local[*]",
+            packages='org.postgresql:postgresql:42.2.14'
         )
         parq_to_postgres
     else:
