@@ -25,13 +25,17 @@ dag = DAG(os.path.basename(__file__),
 print(os.environ.get('TEST_INPUT'))
 dir = os.environ.get('TEST_INPUT') if os.environ.get('TEST_INPUT') else "./input_data"
 files = os.listdir(dir)
+zip_files = []
+for filename in files:
+    if filename.endswith(".zip"):
+        zip_files.append(filename)
 # filename = "NIC243790_HES_AE_201599.zip"
 
 
 wait_time = 0
 
 with dag:
-    for filename in files:
+    for filename in zip_files:
         if (filename.endswith(".zip")):
             # delta = timedelta(minutes=wait_time)
             key = filename.strip(".zip")
@@ -41,7 +45,8 @@ with dag:
                 application="/usr/local/airflow/dags/functions/parq_to_postgres_pyspark.py",
                 # conn_id='spark_local',
                 master="local[*]",
-                packages='org.postgresql:postgresql:42.2.14'
+                packages='org.postgresql:postgresql:42.2.14',
+                application_args=[key]
             )
             postgres_validate = DummyOperator(task_id=f"Validate_postgres_{key}")
             zipToParq = CfSparkSubmitOperator(filename=filename, filelocation=dir, sample="100")

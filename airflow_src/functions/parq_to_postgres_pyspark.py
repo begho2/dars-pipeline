@@ -187,9 +187,9 @@ def createPartitionCreatorFunc(con, DATA_DETAILS: dict):
     cur.execute(createFuncSql)
     print("Func created successfully")
 
-def exec():
-    input_path = f'{Path(__file__).resolve().parents[2]}/hes_output/NIC243790_HES_AE_201599.parq'
-    # input_path = f'{Path(__file__).resolve().parents[2]}/output_data/NIC243790_HES_AE_201499.parq'
+def exec(filename):
+    # input_path = f'{Path(__file__).resolve().parents[2]}/hes_output/NIC243790_HES_AE_201499.parq'
+    input_path = f'{Path(__file__).resolve().parents[2]}/output_data/{filename}.parq'
     # input_path = 'output_data/NIC243790_HES_AE_201599.parq'
 
     df: DataFrame = load_data(input_path)
@@ -225,7 +225,10 @@ def exec():
     validate_count_and_number_partitions(DB_PROPERTIES, table_name, 100, df.rdd.getNumPartitions())
 
 if __name__ == "__main__":
-    exec()
+    
+    filename = sys.argv[1]
+    print(f"FILE: {filename}")
+    exec(filename)
     """
         Usage: pi [partitions]
     """
