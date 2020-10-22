@@ -2,4 +2,4 @@
 target/**
 *.iml
 hes_zips/*.zip
-hes_output/**
+hes_output/*.parq
