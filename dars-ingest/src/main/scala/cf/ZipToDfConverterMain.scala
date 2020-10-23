@@ -24,11 +24,10 @@ object ZipToDfConverterMain extends SparkSessionWrapper {
     val limitNum = limit.toString().toLong
 
     try {
-      val df = ZipToDfConverter.exportZipToParq(inputPath, s"${outputPath}.parq", limitNum)(spark)
+      val df = ZipToDfBatched.exportZipToParq(inputPath, s"${outputPath}.parq", limitNum)(spark)
+//      val df = ZipToDfConverter.exportZipToParq(inputPath, s"${outputPath}.parq", limitNum)(spark)
       log.info(s"Finished writing parq to ${outputPath}")
       df.show(false)
-      ////    ColumnProfileRunner
-      //    print("\n")
       print(s"Count is ${df.count()}\n")
     } catch {
       case e: Exception => {
