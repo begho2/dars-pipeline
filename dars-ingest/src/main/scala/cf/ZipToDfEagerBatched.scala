@@ -4,18 +4,20 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.util.zip.ZipInputStream
 
 import org.apache.spark.input.PortableDataStream
-import org.apache.spark.sql.{SparkSession, _}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{SparkSession, _}
 
 import scala.collection.mutable
 
 
-object ZipToDfBatched  {
+//ZipToDfEagerBatched.exportZipToParq("../dars-ingest/hes_zips/NIC243790_HES_AE_201599.zip","../dars-ingest/hes_output/pjb_eh",10000)(spark)
+
+object ZipToDfEagerBatched  {
   val PARTITION_NAME = "admi_partition"
 
   def exportZipToParq(zipPath: String, parqLocation: String, limit: Long = Long.MaxValue, batchSize: Int = 10000, isDebug: Boolean = false)(implicit sparkSession: SparkSession) ={
-    println(s"Reading zip ${zipPath} with limit [${limit}] and batch size [${batchSize}]. isDebug][${isDebug}]")
+    println(s"Reading zip ${zipPath} with limit [${limit}] and batch size [${batchSize}] and isDebug[${isDebug}]")
     val df = get_top_n_rows(zipPath, limit, batchSize, isDebug)
     println(s"Writing parq to ${parqLocation} with limit of ${limit}, partitioned by ${PARTITION_NAME}")
 
@@ -74,16 +76,30 @@ object ZipToDfBatched  {
 
     val dfs = mutable.ListBuffer[DataFrame]()
     var batchCount = 0
-    while (batchCount <= limit/batchSize ) {
-      batchCount=batchCount + 1
+    var totalCount = 0
+    var isNotFinished = true
+    while (totalCount <= limit ) {
+      batchCount=batchCount+1
       var count: Long = 0L
-      val stream = Stream.continually(br.readLine()).takeWhile(row => {
-        count = count + 1L
-        (row != null) && (count <= batchSize)
-      })
+      var lines = mutable.ListBuffer[String]()
+      while (count < batchSize && isNotFinished) {
+        val line = br.readLine()
+        count = count + 1
+        totalCount = totalCount + 1
+        if (line == null)
+          isNotFinished = false
+        else if (totalCount > limit) {
+          println(s"Reached limit ${limit}")
+          isNotFinished = false
+        }
+        else
+          lines+=line
+
+      }
+
       val separator = "\\|" // this is so we can use split with the optional -1 param, that ensures we preserve trailing elements
       // option 1) get df and persist, build array and union all at the end.
-      val rows = stream.map(str => {
+      val rows = lines.map(str => {
         Row.fromSeq(str.split(separator,-1).map(_.trim))
       })
       val rdd = spark.sparkContext.makeRDD(rows.toSeq)
@@ -102,9 +118,9 @@ object ZipToDfBatched  {
       if (isDebug)
         println(s"Just read df of size: [${cachedDf.count()}]")
       dfs.+=:(cachedDf)
-      println(s"completed batch ${batchCount} with row count ${count-1}")
+      println(s"completed batch ${batchCount} with row count ${count-1}. Total count now ${totalCount}")
     }
-//    println(s"count is now ${count}")
+    println(s"Merging dfs")
     dfs.reduce(_ union _)
 
   }
