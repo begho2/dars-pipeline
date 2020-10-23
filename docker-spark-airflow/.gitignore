@@ -1,5 +1,4 @@
 ### Vim ###
-hes_zips/*.zip
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
 *.un~
@@ -25,3 +24,6 @@ sftp-config.json
 
 # Python
 __pycache__
+
+hes_zips/*.zip
+hes_output/*.parq

@@ -11,7 +11,7 @@ class CfSparkSubmitOperator(SparkSubmitOperator):
     @apply_defaults
     def __init__(self, filename, sample: str = "0", *args, **kwargs):
         runtime_limit = '{{dag_run.conf["limit"] or sample}}'
-        driver_memory = '{{"3g" if dag_run.conf["limit"] else "1g"}}'
+        driver_memory = '{{"12g" if dag_run.conf["limit"] else "1g"}}'
         # need to add this if limit is 0 --conf "-- driver-memory 3g --conf spark.memory.fraction=0.1 "
         print(f"\nFound limit {runtime_limit}\n")
         print(f"\nFound driver_memory {driver_memory}\n")
@@ -28,9 +28,9 @@ class CfSparkSubmitOperator(SparkSubmitOperator):
             verbose=True,
             application="external_resources/dars-ingest-1.0-SNAPSHOT.jar",
             java_class="cf.ZipToDfConverterMain",
-            application_args=[runtime_limit, f"input_data/{filename}", f"output_data"],
+            application_args=[runtime_limit, f"input_data/{filename}", f"hes_output"],
             driver_memory=driver_memory,
-            conf={'spark.memory.fraction': '0.1'},
+            # conf={'spark.memory.fraction': '0.1'},
 
             # conn_id="might need to configure this",
             # conf="any extra options like log4j or memory fraction",
