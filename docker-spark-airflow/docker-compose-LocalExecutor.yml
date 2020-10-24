@@ -13,7 +13,7 @@ services:
                 max-file: "3"
         ports:
             - "5433:5432"
-        networks: 
+        networks:
             - dars_network
 
     webserver:
@@ -32,21 +32,21 @@ services:
         volumes:
             - ../airflow_src:/usr/local/airflow/dags
 #            - ./plugins:/usr/local/airflow/plugins
-            - ../dars-ingest/target/dars-ingest-1.0-SNAPSHOT.jar:/usr/local/airflow/external_resources/dars-ingest-1.0-SNAPSHOT.jar
+            - ../dars-ingest/target/dars-ingest-1.0-SNAPSHOT-jar-with-dependencies.jar:/usr/local/airflow/external_resources/dars-ingest-1.0-SNAPSHOT-jar-with-dependencies.jar
 #            - ./external_resources:/usr/local/airflow/external_resources
 #            - /Users/patrickboundy/Downloads/NIC243790_HES_AE_201599.zip:/usr/local/airflow/external_resources/NIC243790_HES_AE_201599.zip
             - ../dars-ingest/hes_zips:/usr/local/airflow/input_data
             - ../dars-ingest/hes_output:/usr/local/airflow/output_data
         ports:
             - "8080:8080"
-            - "4040:4040"
+            - "4041:4040"
         command: webserver
         healthcheck:
             test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
             interval: 30s
             timeout: 30s
             retries: 3
-        networks: 
+        networks:
             - dars_network
 
 networks:

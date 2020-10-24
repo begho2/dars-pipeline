@@ -15,15 +15,21 @@
             <version>3.0.5</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.amazon.deequ</groupId>
-            <artifactId>deequ</artifactId>
-            <version>1.0.3-RC1</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.amazon.deequ</groupId>-->
+            <!--<artifactId>deequ</artifactId>-->
+            <!--<version>1.0.3-RC1</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.11</artifactId>
             <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.6</version>
+            <!--<type>bundle</type>-->
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -46,6 +52,24 @@
                             <goal>add-source</goal>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>

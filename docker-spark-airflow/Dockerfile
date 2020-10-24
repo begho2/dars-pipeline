@@ -5,7 +5,11 @@
   #need to understand alipine vs debian vs buster vs slim.
 #https://github.com/puckel/docker-airflow/issues/182 - trick for getting openjdk8 on debian image
 # another dockerfile entrypoint setup = https://github.com/GitaiQAQ/docker-airflow-with-spark/blob/master/script/entrypoint.sh
+FROM maven:3.6.0-jdk-8-slim AS add_maven
 
+RUN apt-get update
+RUN apt-get install vim -y
+RUN apt-get install less -y
 
 FROM python:3.7-slim-buster
 
@@ -159,9 +163,6 @@ RUN curl -sL --retry 3 \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
  && chown -R root:root $SPARK_HOME
-
-
-
 
 
 EXPOSE 8080 5555 8793 4040

@@ -26,9 +26,9 @@ class CfSparkSubmitOperator(SparkSubmitOperator):
             # keytab and principal location
             name=f'SparkIngest_${filename}',
             verbose=True,
-            application="external_resources/dars-ingest-1.0-SNAPSHOT.jar",
+            application="external_resources/dars-ingest-1.0-SNAPSHOT-jar-with-dependencies.jar",
             java_class="cf.ZipToDfConverterMain",
-            application_args=[runtime_limit, f"input_data/{filename}", f"hes_output"],
+            application_args=[f"input_data/{filename}", runtime_limit],
             driver_memory=driver_memory,
             # conf={'spark.memory.fraction': '0.1'},
 

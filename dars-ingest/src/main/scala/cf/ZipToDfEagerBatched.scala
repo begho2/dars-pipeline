@@ -7,6 +7,7 @@ import org.apache.spark.input.PortableDataStream
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{SparkSession, _}
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable
 
@@ -114,7 +115,7 @@ object ZipToDfEagerBatched  {
       val schema = StructType(col_names.map(c => StructField(c, StringType)))
       val df = spark.createDataFrame(rdd, schema)
       val partitionedDf = df.withColumn(PARTITION_NAME, date_format(to_date(col(partitionCol.get),"yyyy-MM-dd"), "yyyyMM"))
-      val cachedDf = partitionedDf.cache()
+      val cachedDf = partitionedDf.persist(StorageLevel.MEMORY_AND_DISK)
       if (isDebug)
         println(s"Just read df of size: [${cachedDf.count()}]")
       dfs.+=:(cachedDf)

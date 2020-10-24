@@ -3,7 +3,10 @@ Build the docker image for airflow:
  docker build --rm -t pjboundy/cf-docker-airflow .
 
 Use the new image pushed to local repo, for docker compose:
- docker-compose -f docker-compose-LocalExecutor.yml up -d
+first manually create network using:
+    docker network create dars_network
+then:
+    docker-compose -f docker-compose-LocalExecutor.yml up -d
  
 Test web interface:
  localhost:8080
