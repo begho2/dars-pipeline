@@ -14,6 +14,8 @@ import scala.collection.mutable
 object ZipToPostgres  {
 
   var DEBUG = false
+  val DEFAULT_BATCH_SIZE = 10000
+  val DEFAULT_LIMIT = Long.MaxValue
 
   val PARTITION_NAME = "admi_partition"
 
@@ -23,11 +25,11 @@ object ZipToPostgres  {
     val partitionCandidate = findPartitionColumn(colNames)
     ZipToPostgres.setupSchema(tableName, colNames.toList, PARTITION_NAME)
   }
-  def exportZipDataToPostgres(path: String, limit: Long = 1000000, batchSize: Int = 1000)(implicit spark: SparkSession) = {
+  def exportZipDataToPostgres(path: String, limitOption: Option[Long], batchSizeOption: Option[Int])(implicit spark: SparkSession) = {
     val tableName = path.split("/").last.stripSuffix(".zip")
     val colNames: Array[String] = getColumnNames(path, spark) :+ PARTITION_NAME
     val partitionCandidate = findPartitionColumn(colNames)
-    ZipToPostgres.zipDataIntoPostgres(path, tableName, colNames, partitionCandidate, PARTITION_NAME, limit, batchSize)
+    ZipToPostgres.zipDataIntoPostgres(path, tableName, colNames, partitionCandidate, PARTITION_NAME, limitOption, batchSizeOption)
 
     val conn = getDbConnection()
     try {
@@ -38,18 +40,20 @@ object ZipToPostgres  {
   }
 
   def zipDataIntoPostgres(path: String, tableName: String, colNames: Array[String], paritionCandidate: String,
-                          partitionColumn: String, passedLimit: Long = 1000000, batchSize: Int = 50000)(implicit spark: SparkSession) = {
+                          partitionColumn: String, limitOption: Option[Long], batchSizeOption: Option[Int])(implicit spark: SparkSession) = {
     // get index of partitionColumn so we can extract it and synthesize it
     val partitionIndex = colNames.indexOf(paritionCandidate)
 
-    val limit = if (passedLimit == 0) Integer.MAX_VALUE else passedLimit
-    println(s"Getting top ${limit} rows from ${path}")
+    // default limit to max size if passed limit is empty or 0
+    val limit = if (limitOption.getOrElse(DEFAULT_LIMIT)==0L) DEFAULT_LIMIT else limitOption.getOrElse(DEFAULT_LIMIT)
+    val batchSize = batchSizeOption.getOrElse(DEFAULT_BATCH_SIZE)
+    println(s"Getting top ${limit} rows from ${path} with batchSize ${batchSize}")
     val (name: String, content: PortableDataStream) = spark.sparkContext.binaryFiles(path, 10).first()
     val zis = new ZipInputStream(content.open)
     zis.getNextEntry
     val br = new BufferedReader(new InputStreamReader(zis))
     var line = br.readLine()
-    var totalCount = 0
+    var totalCount = 0L
 
     while (totalCount < limit && line != null ) {
       var count: Long = 0L

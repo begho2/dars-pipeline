@@ -28,7 +28,7 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
     ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,5,2)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(5L),Some(2))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
 
@@ -39,7 +39,7 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     //    val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
     ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,10000,3000)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(10000L),Some(3000))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
 
