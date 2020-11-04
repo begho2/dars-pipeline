@@ -68,14 +68,11 @@ def list_s3_keys():
 with dag:
     for filename in zip_files:
         key = filename.strip(".zip")
-        list_keys = PythonOperator(
-            task_id="list_s3_keys",
-            python_callable=list_s3_keys,
-        )
+        # list_keys = PythonOperator(
+        #     task_id="list_s3_keys",
+        #     python_callable=list_s3_keys,
+        # )
         setup_postgres_schema = create_spark_operator(task=f"SetupSchema", class_name='cf.ZipToPostgresSchemaMain' , filename=filename)
         push_to_postgres = create_spark_operator(task=f"InsertData", class_name='cf.ZipToPostgresInsertMain' , filename=filename, limit=100)
-        list_keys >> setup_postgres_schema >> push_to_postgres
-
-
-
-
+        # list_keys >> setup_postgres_schema >> push_to_postgres
+        setup_postgres_schema >> push_to_postgres
