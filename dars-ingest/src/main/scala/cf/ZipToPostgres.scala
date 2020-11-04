@@ -38,11 +38,11 @@ object ZipToPostgres  {
   }
 
   def zipDataIntoPostgres(path: String, tableName: String, colNames: Array[String], paritionCandidate: String,
-                          partitionColumn: String, limit: Long = 1000000, batchSize: Int = 50000)(implicit spark: SparkSession) = {
+                          partitionColumn: String, passedLimit: Long = 1000000, batchSize: Int = 50000)(implicit spark: SparkSession) = {
     // get index of partitionColumn so we can extract it and synthesize it
     val partitionIndex = colNames.indexOf(paritionCandidate)
 
-
+    val limit = if (passedLimit == 0) Integer.MAX_VALUE else passedLimit
     println(s"Getting top ${limit} rows from ${path}")
     val (name: String, content: PortableDataStream) = spark.sparkContext.binaryFiles(path, 10).first()
     val zis = new ZipInputStream(content.open)

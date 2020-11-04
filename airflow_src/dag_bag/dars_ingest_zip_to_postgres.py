@@ -76,3 +76,10 @@ with dag:
         push_to_postgres = create_spark_operator(task=f"InsertData", class_name='cf.ZipToPostgresInsertMain' , filename=filename, limit=100)
         # list_keys >> setup_postgres_schema >> push_to_postgres
         setup_postgres_schema >> push_to_postgres
+<<<<<<< HEAD
+=======
+
+
+
+
+>>>>>>> 0630b86123d8a765044838db93a3b4fa86629698
