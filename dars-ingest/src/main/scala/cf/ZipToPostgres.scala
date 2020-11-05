@@ -67,8 +67,15 @@ object ZipToPostgres  {
         }
       }
 
-      def createSyntheticPartitionColumn(value: String)={
-        value.replace("-","").substring(0,value.length-4)
+      def createSyntheticPartitionColumn(value: String): String ={
+        try {
+          value.replace("-", "").substring(0, value.length - 4)
+        } catch {
+          case e: Exception => {
+            println(s"Unable to create synthetic column value from [${value}] [${e.getMessage}]")
+            "Unknown"
+          }
+        }
       }
       val separator = "\\|" // this is so we can use split with the optional -1 param, that ensures we preserve trailing elements
       // option 1) get df and persist, build array and union all at the end.
@@ -80,8 +87,9 @@ object ZipToPostgres  {
         updatedLineArray.map(e=>s"\'${e}\'").mkString(",")
       })
       val isDebug = false
-      if (isDebug)
+      if (isDebug) {
         println(s"Just read rows: [${rowsAsString.length}]")
+      }
       insertIntoPostgres(tableName, colNames.toList, rowsAsString.toList)
       val currTime = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss"))
       println(s"completed batch. Total count now ${totalCount}. Time is ${currTime}")
@@ -94,12 +102,12 @@ object ZipToPostgres  {
     val partitionCol = partitionColChoices.collectFirst{
       case  col: String if colNames.toSet[String].contains(col) => col
     }
-    if (partitionCol.isEmpty) throw new RuntimeException(s"No matching partition columns candidate found from ${colNames}")
+    if (partitionCol.isEmpty) throw new RuntimeException(s"No matching partition columns candidate found from ${colNames.mkString(",")}")
     println(s"Discovered column ${partitionCol.get} to use for our synthetic Partition colum on parq")
     partitionCol.get
   }
 
-  private def getColumnNames(path: String, spark: SparkSession) = {
+  def getColumnNames(path: String, spark: SparkSession) = {
     println(s"Getting header from from ${path}")
     val (name: String, content: PortableDataStream) = spark.sparkContext.binaryFiles(path, 10).first()
     val zis = new ZipInputStream(content.open)
