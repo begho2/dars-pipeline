@@ -1,5 +1,6 @@
 package cf
 
+import cf.ZipToPostgres.{PARTITION_NAME, findPartitionColumn, getColumnNames}
 import org.scalatest.Matchers
 
 class ZipToPostgresTest extends org.scalatest.FunSuite
@@ -28,9 +29,25 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
     ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,5,2)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(5L),Some(2))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
+
+  test("test data that has bad date partition info"){
+    var start = System.currentTimeMillis()
+    val path = "./hes_zips/test_ae_bad_admidate.zip"
+    ZipToPostgres.DEBUG = false
+    ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
+    val tableName = path.split("/").last.stripSuffix(".zip")
+    val colNames: Array[String] = ZipToPostgres.getColumnNames(path, spark) :+ PARTITION_NAME
+
+    val partitionCandidate = findPartitionColumn(colNames)
+
+    ZipToPostgres.zipDataIntoPostgres(path, tableName, colNames, partitionCandidate, PARTITION_NAME, None, None)(spark)
+
+    println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
+  }
+
 
   test("End to end with real data"){
     val path = "./hes_zips/NIC243790_HES_AE_201599.zip"
@@ -39,20 +56,17 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     //    val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
     ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,10000,3000)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(10000L),Some(3000))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
 
 }
-//todo. add the analyse step
-// main
-// airflow separaye steps
-// test in airflow with docker
-//push
-//
+//todo.
+// make tests work without postgres.
+//  get tests working on github
+//  option to read and print to console (dry run)
+//  option to read and save sample to csv
 // for a later time.
 // can we do without spark
 // read back into spark
-// pgadmin is really good
-// can we do faster inserts with partition logic - i on't think so
 // can we do all of this in python
