@@ -64,6 +64,7 @@ object ZipToPostgres  {
       }
 
       def createSyntheticPartitionColumn(value: String)={
+        println(s"Value: ${value}")
         value.replace("-","").substring(0,value.length-4)
       }
       val separator = "\\|" // this is so we can use split with the optional -1 param, that ensures we preserve trailing elements

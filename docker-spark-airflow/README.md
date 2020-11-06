@@ -16,6 +16,7 @@ Deploy ingest dag:
  
 Command line to look at logs
  docker exec -ti docker-spark-airflow_webserver_1 /bin/bash
+ docker exec -u root -it docker-spark-airflow_webserver_1 /bin/bash
  cd logs
 
 To stop the docker compose env, replace 'up -d' with 'kill'
