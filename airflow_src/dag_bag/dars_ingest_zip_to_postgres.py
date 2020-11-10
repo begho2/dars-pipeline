@@ -37,13 +37,13 @@ dag = DAG(os.path.basename(__file__),
 
 # Try hard coding
 zip_files = [
-    # "NIC243790_HES_APC_201499.zip",
+    "NIC243790_HES_APC_201499.zip",
     "NIC243790_HES_APC_201599.zip",
     "NIC243790_HES_APC_201699.zip",
-    # "NIC243790_HES_APC_201799.zip",
-    # "NIC243790_HES_APC_201899.zip",
-    # "NIC243790_HES_APC_201999.zip",
-    # "NIC243790_HES_APC_202005.zip"
+    "NIC243790_HES_APC_201799.zip",
+    "NIC243790_HES_APC_201899.zip",
+    "NIC243790_HES_APC_201999.zip",
+    "NIC243790_HES_APC_202005.zip"
 ]
 
 def create_spark_operator(task, class_name, filename, limit=100):
