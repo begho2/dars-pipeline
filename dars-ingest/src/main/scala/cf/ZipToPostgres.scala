@@ -19,14 +19,15 @@ object ZipToPostgres  {
 
   val PARTITION_NAME = "admi_partition"
 
-  def discoverZipSchemaAndCreateInDb(path: String)(implicit spark: SparkSession) = {
-    val tableName = path.split("/").last.stripSuffix(".zip")
+  def discoverZipSchemaAndCreateInDb(path: String, tableName: String)(implicit spark: SparkSession) = {
+    // val tableName = path.split("/").last.stripSuffix(".zip")
     val colNames: Array[String] = getColumnNames(path, spark) :+ PARTITION_NAME
     val partitionCandidate = findPartitionColumn(colNames)
     ZipToPostgres.setupSchema(tableName, colNames.toList, PARTITION_NAME)
   }
-  def exportZipDataToPostgres(path: String, limitOption: Option[Long], batchSizeOption: Option[Int])(implicit spark: SparkSession) = {
-    val tableName = path.split("/").last.stripSuffix(".zip")
+
+  def exportZipDataToPostgres(path: String, limitOption: Option[Long], tableName: String, batchSizeOption: Option[Int])(implicit spark: SparkSession) = {
+    // val tableName = path.split("/").last.stripSuffix(".zip")
     val colNames: Array[String] = getColumnNames(path, spark) :+ PARTITION_NAME
     val partitionCandidate = findPartitionColumn(colNames)
     ZipToPostgres.zipDataIntoPostgres(path, tableName, colNames, partitionCandidate, PARTITION_NAME, limitOption, batchSizeOption)
@@ -157,9 +158,9 @@ object ZipToPostgres  {
     val colsSchema = columns.map((c)=>s"${c} varchar not null").mkString(",\n")
 
     val createTableSql = f"""
-  create table if not exists ${tableName} (
-      ${colsSchema}
-  ) partition by list (${partitionColumn});
+      create table if not exists ${tableName} (
+          ${colsSchema}
+      ) partition by list (${partitionColumn});
     """
     println(f"create table sql:")
     println(f"${createTableSql}")

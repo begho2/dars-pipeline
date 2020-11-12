@@ -17,11 +17,12 @@ object ZipToPostgresInsertMain extends SparkSessionWrapper {
     println(s"Starting Postgres Data insert App with args ${args.mkString(",")}")
     val inputPath = if (args.length > 0) args(0) else throw new RuntimeException("no inputpath given")
     val limit = if (args.length > 1) Some(args(1).toLong) else None
-    val batchSize = if (args.length > 2) Some(args(2).toInt) else None
+    val tableName = if (args.length > 2) args(2) else throw new RuntimeException("No tablename given")
+    val batchSize = if (args.length > 3) Some(args(3).toInt) else None
 
     ZipToPostgres.printDbConnectionDetails()
     try {
-      ZipToPostgres.exportZipDataToPostgres(inputPath, limit, batchSize)(spark)
+      ZipToPostgres.exportZipDataToPostgres(inputPath, limit, tableName, batchSize)(spark)
 
       println(s"Finished writing to postgres")
     } catch {
