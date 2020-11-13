@@ -13,16 +13,6 @@ def get_filename(zip_path):
 # Return generator of rows, where each row is a list of string elements
 def get_zip_data_generator(path):
     filename = get_filename(path)
-
-    # lines = ZipFile(path).open(filename).readlines()
-    # print(lines)
-    #
-    # lines = ZipFile(path).open(filename).readlines(2)
-    # print(lines)
-    #
-    # lines = ZipFile(path).open(filename).readline(10000)
-    # print(lines)
-
     file = ZipFile(path).open(filename)
     return (line.strip().decode("utf-8") for line in file)
 
