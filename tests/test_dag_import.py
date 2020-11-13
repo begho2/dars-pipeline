@@ -10,7 +10,9 @@ from airflow.utils.dates import days_ago
 
 from operators.cf_spark_submit_operator import CfSparkSubmitOperator
 
-
+"""
+Recreate this for the PythonOperator
+"""
 class TestDagImport(unittest.TestCase):
     def test_imports(self):
         dag_dir = f'{Path(__file__).resolve().parents[1]}/airflow_src/dag_bag'
@@ -19,7 +21,7 @@ class TestDagImport(unittest.TestCase):
         failures = []
         print(f"for dag dir [{dag_dir}], found {dags}")
 
-        os.environ['TEST_INPUT']=f'{Path(__file__).resolve().parents[1]}/dars-ingest/hes_zips'
+        os.environ['TEST_INPUT']=f'{Path(__file__).resolve().parents[1]}/hes_input'
         for d in dags:
             print(d)
             with self.subTest(msg=d):
@@ -28,7 +30,7 @@ class TestDagImport(unittest.TestCase):
                 self.assertEqual((len(dag.import_errors)),0,f'{dag} -> Failed with {dag.import_errors}')
 
     def test_spark_submit(self):
-        os.environ['TEST_INPUT'] = f'{Path(__file__).resolve().parents[1]}/dars-ingest/hes_zips'
+        os.environ['TEST_INPUT'] = f'{Path(__file__).resolve().parents[1]}/hes_input'
         args = {
             'start_date': days_ago(1),
             'retries': 1,
@@ -56,6 +58,9 @@ class TestDagImport(unittest.TestCase):
                     # delta = timedelta(minutes=wait_time)
                     # waiter = BashOperator(task_id=f"Wait_{wait_time}", bash_command=f"sleep {wait_time}")
                     # wait_time = wait_time + (5 * 60)
+                    """
+                    How to test an operator
+                    """
                     zipToParq = CfSparkSubmitOperator(filename=f, filelocation=dir, sample="100")
                     ti = TaskInstance(task=zipToParq, execution_date=datetime.now())
 
