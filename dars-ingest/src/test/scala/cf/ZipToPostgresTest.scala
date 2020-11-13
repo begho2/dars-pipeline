@@ -28,8 +28,9 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     var start = System.currentTimeMillis()
     val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
-    ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,Some(5L),Some(2))(spark)
+    val tableName = path.split("/").last.stripSuffix(".zip")
+    ZipToPostgres.discoverZipSchemaAndCreateInDb(path, tableName)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(5L), tableName, Some(2))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
 
@@ -37,8 +38,8 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     var start = System.currentTimeMillis()
     val path = "./hes_zips/test_ae_bad_admidate.zip"
     ZipToPostgres.DEBUG = false
-    ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
     val tableName = path.split("/").last.stripSuffix(".zip")
+    ZipToPostgres.discoverZipSchemaAndCreateInDb(path, tableName)(spark)
     val colNames: Array[String] = ZipToPostgres.getColumnNames(path, spark) :+ PARTITION_NAME
 
     val partitionCandidate = findPartitionColumn(colNames)
@@ -55,8 +56,9 @@ class ZipToPostgresTest extends org.scalatest.FunSuite
     var start = System.currentTimeMillis()
     //    val path = "./hes_zips/test_ae.zip"
     ZipToPostgres.DEBUG = false
-    ZipToPostgres.discoverZipSchemaAndCreateInDb(path)(spark)
-    ZipToPostgres.exportZipDataToPostgres(path,Some(10000L),Some(3000))(spark)
+    val tableName = path.split("/").last.stripSuffix(".zip")
+    ZipToPostgres.discoverZipSchemaAndCreateInDb(path, tableName)(spark)
+    ZipToPostgres.exportZipDataToPostgres(path,Some(10000L), tableName, Some(3000))(spark)
     println(s"time taken to transform zip to df and show: ${System.currentTimeMillis()-start} millis")
   }
 

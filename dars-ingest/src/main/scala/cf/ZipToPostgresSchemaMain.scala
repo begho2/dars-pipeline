@@ -24,10 +24,11 @@ object ZipToPostgresSchemaMain extends SparkSessionWrapper {
   def main(args: Array[String]) = {
     println(s"Starting Schema Create App with args ${args.mkString(",")}")
     val inputPath = if (args.length > 0) args(0) else throw new RuntimeException("no inputpath given")
+    val tableName = if (args.length > 2) args(2) else throw new RuntimeException("No tablename given")
     ZipToPostgres.printDbConnectionDetails()
     try {
       val start = System.currentTimeMillis()
-      ZipToPostgres.discoverZipSchemaAndCreateInDb(inputPath)(spark)
+      ZipToPostgres.discoverZipSchemaAndCreateInDb(inputPath, tableName)(spark)
 
       println(s"Finished writing to postgres. Took ${(System.currentTimeMillis()-start)/1000} secs")
     } catch {
