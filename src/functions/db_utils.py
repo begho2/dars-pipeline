@@ -1,11 +1,16 @@
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-DEBUG = True
+DEBUG = False
 
 def exec_on_db(DB_PROPERTIES, DATA_DETAILS, func):
   import psycopg2
-  con = psycopg2.connect(dbname=DB_PROPERTIES['db_name'], user=DB_PROPERTIES['user'], password=DB_PROPERTIES['password'],
-                         host=DB_PROPERTIES['hostname'], port=DB_PROPERTIES['port'])
+  con = psycopg2.connect(
+    dbname=DB_PROPERTIES['db_name'], 
+    user=DB_PROPERTIES['user'], 
+    password=DB_PROPERTIES['password'],
+    host=DB_PROPERTIES['hostname'], 
+    port=DB_PROPERTIES['port']
+  )
   try:
     return func(con, DATA_DETAILS)
   finally:
@@ -14,7 +19,8 @@ def exec_on_db(DB_PROPERTIES, DATA_DETAILS, func):
 
 
 def create_database(con, DATA_DETAILS):
-  db_name = DATA_DETAILS["db_name"]
+  # db_name = DATA_DETAILS["db_name"]
+  db_name = 'airflow'
 
   con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
   cursor = con.cursor()
@@ -134,8 +140,3 @@ def print_db_connection_details(DB_PROPERTIES):
   db_name = DB_PROPERTIES["db_name"]
   con_str = f"jdbc:postgresql://{hostname}:{port}/{db_name}"
   print(f"Postgress connection details {con_str} {user} {password}")
-
-
-
-
-

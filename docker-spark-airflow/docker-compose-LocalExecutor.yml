@@ -32,7 +32,7 @@ services:
         volumes:
             - ../airflow_src:/usr/local/airflow/dags
             - ../hes_input:/usr/local/airflow/hes_input
-            - ../src/:/usr/local/airflow/src
+            - ../src/:/usr/local/airflow/dags/src
             - ../tests/:/usr/local/airflow/tests
         ports:
             - "8080:8080"

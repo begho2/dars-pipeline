@@ -1,34 +1,44 @@
-from functions.db_utils import exec_on_db, insert_values, drop_table, create_master_table, create_partitions, \
+from src.functions.db_utils import exec_on_db, insert_values, drop_table, create_master_table, create_partitions, \
     analyze_table
-from functions.db_utils import truncate_table, print_db_connection_details
-from functions.hes_zip_utils import get_zip_data_generator, batch_datalines_and_process, SEPARATOR
+from src.functions.db_utils import truncate_table, print_db_connection_details
+from src.functions.hes_zip_utils import get_zip_data_generator, batch_datalines_and_process, SEPARATOR
 
 DEBUG = False
 
 PARTITION_NAME = "admi_partition"
 PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE")
 DB_PROPERTIES = {
-    "hostname": "localhost",
-    "port": "5433",
-    "url": f"jdbc:postgresql://postgres:5433/dars",  # os.environ.get("RDS_URL"),
+    "hostname": "postgres",
+    "port": "5432",
+    "url": f"jdbc:postgresql://postgres:5433/airflow",  # os.environ.get("RDS_URL"),
     "user": "airflow",  # os.environ.get("RDS_USER"),
     "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
-    "schema": "hes",
-    "db_name": "dars",
+    "schema": "public",
+    "db_name": "airflow",
     "driver": "org.postgresql.Driver"
 }
 
-def setup_schema(DB_PROPERTIES, DATA_DETAILS):
-  # exec_on_db(DB_PROPERTIES, DATA_DETAILS, createDatabase)
-  exec_on_db(DB_PROPERTIES, DATA_DETAILS, drop_table)
-  exec_on_db(DB_PROPERTIES, DATA_DETAILS, create_master_table)
-  exec_on_db(DB_PROPERTIES, DATA_DETAILS, create_partitions)
-  exec_on_db(DB_PROPERTIES, DATA_DETAILS, truncate_table)
+def setup_schema(filename, table_name, DB_PROPERTIES):
+    # exec_on_db(DB_PROPERTIES, DATA_DETAILS, createDatabase)
+
+    header = next(get_zip_data_generator(filename))
+        
+    DATA_DETAILS = {
+        'table_name': table_name,
+        'columns': header.split(SEPARATOR) + [PARTITION_NAME],
+        'partition_column': PARTITION_NAME,
+        'db_name': 'airflow'
+    }
+
+    exec_on_db(DB_PROPERTIES, DATA_DETAILS, drop_table)
+    exec_on_db(DB_PROPERTIES, DATA_DETAILS, create_master_table)
+    exec_on_db(DB_PROPERTIES, DATA_DETAILS, create_partitions)
+    exec_on_db(DB_PROPERTIES, DATA_DETAILS, truncate_table)
 
 
-def export_zip_data_to_db(DB_PROPERTIES, path, limit=None, batch_size=None):
-    print(f"exporting {path} to {print_db_connection_details(DB_PROPERTIES)}")
-    table_name = path.split('/')[-1].split(".zip")[0]
+def export_zip_data_to_db(DB_PROPERTIES, table_name, path, limit=None, batch_size=None):
+    print(f"exporting {path} to {DB_PROPERTIES['db_name']}")
+    # table_name = path.split('/')[-1].split(".zip")[0]
     line_generator = get_zip_data_generator(path)
     header = next(line_generator)
     col_names_original = header.split(SEPARATOR)

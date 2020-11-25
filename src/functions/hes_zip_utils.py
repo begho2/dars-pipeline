@@ -22,35 +22,35 @@ def get_header_from_zip(path):
 
 
 def batch_datalines_and_process(data_lines_gen: list, limit, batch_size, func):
-  limit = limit or DEFAULT_LIMIT
-  batch_size = batch_size or DEFAULT_BATCH_SIZE
-  print(f"batching rows with limit of {limit} and batch size {batch_size} ")
+    limit = limit or DEFAULT_LIMIT
+    batch_size = batch_size or DEFAULT_BATCH_SIZE
+    print(f"batching rows with limit of {limit} and batch size {batch_size} ")
 
-  totali=1
-  is_not_finished=True
-  while is_not_finished:
-      lines_batch=[]
-      while is_not_finished and (len(lines_batch) < batch_size):
-          line = next(data_lines_gen)
-          print(f"{totali}: {line}")
-          if (line is None or line == "") or (len(line) < 5):
-              print(f"Reached final line: {line}")
-              is_not_finished=False
-          else:
-              if totali >= limit:
-                  print(f"Reached limit: {limit}")
-                  is_not_finished = False
+    totali=1
+    is_not_finished=True
+    while is_not_finished:
+        lines_batch=[]
+        while is_not_finished and (len(lines_batch) < batch_size):
+            line = next(data_lines_gen)
+            # print(f"{totali}: {line}")
+            if (line is None or line == "") or (len(line) < 5):
+                print(f"Reached final line: {line}")
+                is_not_finished=False
+            else:
+                if totali >= limit:
+                    print(f"Reached limit: {limit}")
+                    is_not_finished = False
 
-              lines_batch.append(line)
-              if is_not_finished:
-                totali += 1
+                lines_batch.append(line)
+                if is_not_finished:
+                    totali += 1
 
 
-      print(f"Finished reading batch of {len(lines_batch)} lines")
-      func(lines_batch)
-      currTime = datetime.now().strftime("%H:%M:%S")
-      print(f"Completed processing batch. Total count now {totali}. Time is {currTime}")
-      print(f"Processed {totali} lines")
+        print(f"Finished reading batch of {len(lines_batch)} lines")
+        func(lines_batch)
+        currTime = datetime.now().strftime("%H:%M:%S")
+        print(f"Completed processing batch. Total count now {totali}. Time is {currTime}")
+        print(f"Processed {totali} lines")
 
-  print(f"finished batching {totali} rows with limit of {limit} and batch size {batch_size} ")
-  print("COMPLETED READING")
+    print(f"finished batching {totali} rows with limit of {limit} and batch size {batch_size} ")
+    print("COMPLETED READING")
