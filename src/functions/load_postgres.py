@@ -18,14 +18,14 @@ DB_PROPERTIES = {
     "driver": "org.postgresql.Driver"
 }
 
-def setup_schema(filename, table_name, DB_PROPERTIES):
+def setup_schema(headings, table_name, DB_PROPERTIES):
     # exec_on_db(DB_PROPERTIES, DATA_DETAILS, createDatabase)
 
-    header = next(get_zip_data_generator(filename))
+    # header = next(get_zip_data_generator(filename))
         
     DATA_DETAILS = {
         'table_name': table_name,
-        'columns': header.split(SEPARATOR) + [PARTITION_NAME],
+        'columns': headings + [PARTITION_NAME],
         'partition_column': PARTITION_NAME,
         'db_name': 'airflow'
     }

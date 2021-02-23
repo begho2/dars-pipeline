@@ -1,0 +1,22 @@
+AE_HEADINGS = ['activage', 'aearrivalmode', 'aeattend_exc_planned', 'aeattendcat', 'aeattenddisp', 'aedepttype', 'aeincloctype',
+    'aekey', 'aepatgroup', 'aerefsource', 'arrivalage', 'arrivalage_calc', 'arrivaldate', 'arrivaltime',
+    'cannet', 'canreg', 'carersi', 'ccg_gp_practice', 'ccg_residence', 'ccg_responsibility', 'ccg_treatment',
+    'concldur', 'concltime', 'csnum', 'depdur', 'deptime', 'diag_01', 'diag_02', 'diag_03',
+    'diag_04', 'diag_05', 'diag_06', 'diag_07', 'diag_08', 'diag_09', 'diag_10', 'diag_11',
+    'diag_12', 'diaga_01', 'diaga_02', 'diaga_03', 'diaga_04', 'diaga_05', 'diaga_06',
+    'diaga_07', 'diaga_08', 'diaga_09', 'diaga_10', 'diaga_11', 'diaga_12', 'diags_01', 'diags_02',
+    'diags_03', 'diags_04', 'diags_05', 'diags_06', 'diags_07', 'diags_08', 'diags_09', 'diags_10', 'diags_11',
+    'diags_12', 'diagscheme', 'domproc', 'encrypted_hesid', 'epikey', 'ethnos', 'fyear', 'gpprac',
+    'gpprpct', 'gpprstha', 'hrgnhs', 'hrgnhsvn', 'imd04', 'imd04_decile', 'imd04c',
+    'imd04ed', 'imd04em', 'imd04hd', 'imd04hs', 'imd04i', 'imd04ia', 'imd04ic', 'imd04le', 'imd04rk',
+    'initdur', 'inittime', 'invest_01', 'invest_02', 'invest_03', 'invest_04', 'invest_05', 'invest_06',
+    'invest_07', 'invest_08', 'invest_09', 'invest_10', 'invest_11', 'invest_12', 'lsoa01', 'lsoa11',
+    'mydob', 'newnhsno_check', 'noinvests', 'notreats', 'orgpppid', 'partyear', 'pcfound',
+    'pcon_ons', 'pctcode02', 'pctcode06', 'postdist', 'procode', 'procode3', 'procode5',
+    'procodet', 'protype', 'purcode', 'purstha', 'purval', 'rescty', 'rescty_ons', 'resladst',
+    'resladst_ons', 'resro', 'rotreat', 'rttperend', 'rttperstart', 'rttperstat', 'rururb_ind', 'sex',
+    'sushrg', 'sushrginfo', 'sushrgverinfo', 'sushrgvers', 'susrecid', 'treat_01', 'treat_02', 'treat_03', 'treat_04',
+    'treat_05', 'treat_06', 'treat_07', 'treat_08', 'treat_09', 'treat_10', 'treat_11', 'treat_12',
+    'tretdur', 'trettime', 'waitdays'
+]
+

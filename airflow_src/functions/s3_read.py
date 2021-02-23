@@ -12,3 +12,8 @@ def get_s3_files(s3_path, filename):
     print(s3_path)
     print(filename)
     s3_hook.get_key(key=s3_path, bucket_name="dars-raw").download_file(f"./input_data/{filename}")
+
+
+def get_files(files, table):
+    for file in files:
+        get_s3_files(file, f"{table}/{file}")
