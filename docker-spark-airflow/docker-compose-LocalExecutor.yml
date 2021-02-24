@@ -1,7 +1,7 @@
 version: '3.7'
 services:
     postgres:
-        image: postgres:12-alpine
+        image: postgres:latest
         environment:
             - POSTGRES_USER=airflow
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
@@ -12,19 +12,26 @@ services:
                 max-size: 10m
                 max-file: "3"
         ports:
-            - "5433:5432"
+            - "5430:5432"
+        volumes:
+            - pgdata:/var/lib/postgresql/data
         networks:
             - dars_network
 
     webserver:
         image: pjboundy/cf-docker-airflow:latest
         restart: always
-        depends_on:
-            - postgres
+        # depends_on:
+        #     - postgres
         environment:
             - LOAD_EX=n
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Local
+            - POSTGRES_HOST="10.26.107.56"
+            - POSTGRES_PORT="5430"
+            - POSTGRES_USER="airflow"
+            - POSTGRES_PASSWORD="airflow"
+            - POSTGRES_DB="airflow"
         logging:
             options:
                 max-size: 10m
@@ -49,3 +56,6 @@ services:
 networks:
   dars_network:
     external: true
+
+volumes:
+    pgdata:
