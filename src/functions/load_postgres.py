@@ -6,11 +6,11 @@ from src.functions.hes_zip_utils import get_zip_data_generator, batch_datalines_
 DEBUG = False
 
 PARTITION_NAME = "admi_partition"
-PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE")
+PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE", "APPTDATE")
 DB_PROPERTIES = {
     "hostname": "postgres",
     "port": "5432",
-    "url": f"jdbc:postgresql://postgres:5433/airflow",  # os.environ.get("RDS_URL"),
+    "url": f"jdbc:postgresql://postgres:5430/airflow",  # os.environ.get("RDS_URL"),
     "user": "airflow",  # os.environ.get("RDS_USER"),
     "password": "airflow",  # os.environ.get("RDS_PASSWORD"),
     "schema": "public",
@@ -70,9 +70,11 @@ def find_partition_column(colNames: list) -> str:
 
 
 def add_synthetic_partition_to_row(row_as_string, partition_index):
-    row_as_array = [e.strip() for e in row_as_string.split(SEPARATOR)]
+    replaced = row_as_string.replace(',', ';')
+    row_as_array = [e.strip() for e in replaced.split(SEPARATOR)]
     line_arrays_with_partition = row_as_array + [create_synthetic_partition_column(row_as_array, partition_index)]
-    return ",".join(line_arrays_with_partition)
+    ret_val = ",".join(line_arrays_with_partition)
+    return ret_val
 
 
 def create_synthetic_partition_column(row_as_list: list, partition_index)->str:

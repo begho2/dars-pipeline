@@ -21,11 +21,11 @@ def _db_table(schema: str, table: str) -> str:
 CATALOG = {
     "HES-AE":{
         "s3": {
-            "2014": _s3_location("HES-AE", "NIC243790_HES_AE_201499.zip"),
-            "2015": _s3_location("HES-AE", "NIC243790_HES_AE_201599.zip"),
-            "2016": _s3_location("HES-AE", "NIC243790_HES_AE_201699.zip"),
-            "2017": _s3_location("HES-AE", "NIC243790_HES_AE_201799.zip"),
-            "2018": _s3_location("HES-AE", "NIC243790_HES_AE_201899.zip"),
+            "2014": "NIC243790_HES_AE_201499.zip",
+            "2015": "NIC243790_HES_AE_201599.zip",
+            "2016": "NIC243790_HES_AE_201699.zip",
+            "2017": "NIC243790_HES_AE_201799.zip",
+            "2018": "NIC243790_HES_AE_201899.zip",
         },
         "rds": {
             "ae": _db_table("hes", "ae")
@@ -33,13 +33,13 @@ CATALOG = {
     },
     "HES-APC": {
         "s3": {
-            "2014": _s3_location("HES-APC", "NIC243790_HES_APC_201499.zip"),
-            "2015": _s3_location("HES-APC", "NIC243790_HES_APC_201599.zip"),
-            "2016": _s3_location("HES-APC", "NIC243790_HES_APC_201699.zip"),
-            "2017": _s3_location("HES-APC", "NIC243790_HES_APC_201799.zip"),
-            "2018": _s3_location("HES-APC", "NIC243790_HES_APC_201899.zip"),
-            "2019": _s3_location("HES-APC", "NIC243790_HES_APC_201912.zip"),
-            "2020": _s3_location("HES-APC", "NIC243790_HES_APC_202004.zip"),
+            "2014": "NIC243790_HES_APC_201499.zip",
+            "2015": "NIC243790_HES_APC_201599.zip",
+            "2016": "NIC243790_HES_APC_201699.zip",
+            "2017": "NIC243790_HES_APC_201799.zip",
+            "2018": "NIC243790_HES_APC_201899.zip",
+            "2019": "NIC243790_HES_APC_201912.zip",
+            "2020": "NIC243790_HES_APC_202009.zip",
         },
         "rds": {
             "apc": _db_table("hes", "apc")
@@ -47,13 +47,13 @@ CATALOG = {
     },
     "HES-OP": {
         "s3": {
-            "2014": _s3_location("HES-OP", "NIC243790_HES_OP_201499.zip"),
-            "2015": _s3_location("HES-OP", "NIC243790_HES_OP_201599.zip"),
-            "2016": _s3_location("HES-OP", "NIC243790_HES_OP_201699.zip"),
-            "2017": _s3_location("HES-OP", "NIC243790_HES_OP_201799.zip"),
-            "2018": _s3_location("HES-OP", "NIC243790_HES_OP_201899.zip"),
-            "2019": _s3_location("HES-OP", "NIC243790_HES_OP_201912.zip"),
-            "2020": _s3_location("HES-OP", "NIC243790_HES_OP_202004.zip"),
+            "2014": "NIC243790_HES_OP_201499.zip",
+            "2015": "NIC243790_HES_OP_201599.zip",
+            "2016": "NIC243790_HES_OP_201699.zip",
+            "2017": "NIC243790_HES_OP_201799.zip",
+            "2018": "NIC243790_HES_OP_201899.zip",
+            "2019": "NIC243790_HES_OP_201912.zip",
+            "2020": "NIC243790_HES_OP_202009.zip",
         },
         "rds": {
             "op": _db_table("hes", "op")
@@ -62,12 +62,10 @@ CATALOG = {
     "HES-ECDS": {
         "s3": {
             
-            "2019": _s3_location("HES-ECDS", "NIC243790_HES_ECDS_201999.zip"),
-            "2020": _s3_location("HES-ECDS", "NIC243790_HES_ECDS_202008.zip"),
+            "2019": "NIC243790_HES_ECDS_201999.zip",
+            "2020": "NIC243790_HES_ECDS_202009.zip",
         },
         "rds": {
-            "2019": _db_table("hes", "ecds_2019"),
-            "2020": _db_table("hes", "ecds_2020"),
             "ecds": _db_table("hes", "ecds")
         },
     }
