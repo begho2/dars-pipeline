@@ -6,7 +6,7 @@ from src.functions.hes_zip_utils import get_zip_data_generator, batch_datalines_
 DEBUG = False
 
 PARTITION_NAME = "admi_partition"
-PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE", "APPTDATE")
+PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE", "APPTDATE", "CCSTARTDATE", "arrival_date")
 DB_PROPERTIES = {
     "hostname": "postgres",
     "port": "5432",

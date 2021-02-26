@@ -1,5 +1,6 @@
 from datetime import datetime
 from zipfile import ZipFile
+import gc
 
 DEFAULT_BATCH_SIZE = 10000
 DEFAULT_LIMIT = float('inf')
@@ -49,6 +50,7 @@ def batch_datalines_and_process(data_lines_gen: list, limit, batch_size, func):
         print(f"Finished reading batch of {len(lines_batch)} lines")
         func(lines_batch)
         currTime = datetime.now().strftime("%H:%M:%S")
+        gc.collect()
         print(f"Completed processing batch. Total count now {totali}. Time is {currTime}")
         print(f"Processed {totali} lines")
 

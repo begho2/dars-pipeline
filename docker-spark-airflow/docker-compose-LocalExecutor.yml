@@ -13,8 +13,6 @@ services:
                 max-file: "3"
         ports:
             - "5430:5432"
-        volumes:
-            - pgdata:/var/lib/postgresql/data
         networks:
             - dars_network
 
@@ -27,11 +25,6 @@ services:
             - LOAD_EX=n
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Local
-            - POSTGRES_HOST="10.26.107.56"
-            - POSTGRES_PORT="5430"
-            - POSTGRES_USER="airflow"
-            - POSTGRES_PASSWORD="airflow"
-            - POSTGRES_DB="airflow"
         logging:
             options:
                 max-size: 10m
@@ -56,6 +49,3 @@ services:
 networks:
   dars_network:
     external: true
-
-volumes:
-    pgdata:

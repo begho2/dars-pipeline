@@ -13,11 +13,11 @@ from src.functions.s3_read import get_s3_files
 from src.functions.hes_zip_utils import get_zip_data_generator, SEPARATOR
 from src.functions.load_postgres import setup_schema, DB_PROPERTIES, PARTITION_NAME, export_zip_data_to_db
 from src.data_catalog.catalog import CATALOG
-from src.data_catalog.headings import AE_HEADINGS, OP_HEADINGS
+from src.data_catalog.headings import AE_HEADINGS, OP_HEADINGS, ECDS_HEADINGS
 
 args = {
     'start_date': days_ago(1),
-    'retries': 1,
+    'retries': 0,
     'retry_delay': timedelta(minutes=1),
     'schedule': None
 }
@@ -41,8 +41,8 @@ ecds_zip_files = list(CATALOG['HES-ECDS']['s3'].values())
 
 # Try hard coding
 zip_files = [
-    "NIC243790_HES_AE_201499.zip",
-    "NIC243790_HES_AE_201599.zip"
+    "NIC243790_HES_AE_201499.zip"
+    # "NIC243790_HES_AE_201599.zip"
     # "NIC243790_HES_APC_201499.zip",
     # "NIC243790_HES_APC_201599.zip",
     # "NIC243790_HES_APC_201699.zip",
@@ -66,15 +66,15 @@ def create_subdag(dag_parent, filename, DB_PROPERTIES, table_name, runtime_limit
 
     
     # operators
-    get_s3 = PythonOperator(
-        task_id=f"get_{key}_from_s3",
-        dag=dag,
-        python_callable=get_s3_files,
-        op_kwargs={
-            's3_path' : f'HES-OP/{filename}',
-            'filename' : filename
-        }
-    )
+    # get_s3 = PythonOperator(
+    #     task_id=f"get_{key}_from_s3",
+    #     dag=dag,
+    #     python_callable=get_s3_files,
+    #     op_kwargs={
+    #         's3_path' : f'HES-OP/{filename}',
+    #         'filename' : filename
+    #     }
+    # )
 
     push_to_postgres = PythonOperator(
         task_id=f"insert_data_{key}",
@@ -95,8 +95,8 @@ def create_subdag(dag_parent, filename, DB_PROPERTIES, table_name, runtime_limit
         bash_command=f'rm ~/hes_input/{filename}'
     )
 
-    get_s3 >> push_to_postgres >> delete_tmp
-    # push_to_postgres >> delete_tmp
+    # get_s3 >> push_to_postgres >> delete_tmp
+    push_to_postgres >> delete_tmp
     return dag
 
 # wrap DAG into SubDagOperator
@@ -118,9 +118,9 @@ with top_dag:
     # runtime_limit = '{{dag_run.conf["limit"] or "1000"}}'
     # table_name = '{{dag_run.conf["table_name"] or "test"}}'
     # batch_size = '{{dag_run.conf["batch_size"] or "1000"}}'
-    table_name = "hes.op"
+    table_name = "hes.ecds"
     runtime_limit = 0
-    batch_size = 1000
+    batch_size = 100000
     driver_memory = '{{"2g" if dag_run.conf["limit"] else "1g"}}'
 
     print(f"\nFound limit {runtime_limit}\n")
@@ -132,13 +132,13 @@ with top_dag:
         task_id=f"setup_schema_{table_name}",
         python_callable=setup_schema,
         op_kwargs={
-            'headings': OP_HEADINGS,
+            'headings': ECDS_HEADINGS,
             'table_name': table_name,
             'DB_PROPERTIES': DB_PROPERTIES
         }
     )
 
-    sub_dags = create_all_subdag_operators(top_dag, op_zip_files, DB_PROPERTIES, table_name, runtime_limit, batch_size)
+    sub_dags = create_all_subdag_operators(top_dag, ecds_zip_files, DB_PROPERTIES, table_name, runtime_limit, batch_size)
 
     setup_postgres_schema >> sub_dags[0]
 
