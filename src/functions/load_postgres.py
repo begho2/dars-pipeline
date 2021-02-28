@@ -6,7 +6,7 @@ from src.functions.hes_zip_utils import get_zip_data_generator, batch_datalines_
 DEBUG = False
 
 PARTITION_NAME = "admi_partition"
-PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE", "APPTDATE", "CCSTARTDATE", "arrival_date")
+PARTITION_COL_CHOICES = ("ARRIVALDATE", "ADMIDATE", "APPTDATE", "CCSTARTDATE", "ARRIVAL_DATE")
 DB_PROPERTIES = {
     "hostname": "postgres",
     "port": "5432",
@@ -61,16 +61,19 @@ def export_zip_data_to_db(DB_PROPERTIES, table_name, path, limit=None, batch_siz
 
 
 def find_partition_column(colNames: list) -> str:
-    partition_details = next((i, col_name) for i, col_name in enumerate(colNames) if col_name in PARTITION_COL_CHOICES)
-    if not partition_details:
+    try:
+        partition_details = next((i, col_name) for i, col_name in enumerate(colNames) if col_name in PARTITION_COL_CHOICES)
+    except:
         raise Exception(f'No matching partition columns candidate found from {",".join(colNames)}')
+    # if not partition_details:
+    #     raise Exception(f'No matching partition columns candidate found from {",".join(colNames)}')
 
     print(f"Discovered column {':'.join(partition_details[1])} to use for our synthetic Partition colum on parq")
     return partition_details
 
 
 def add_synthetic_partition_to_row(row_as_string, partition_index):
-    replaced = row_as_string.replace(',', ';')
+    replaced = row_as_string.replace(",", ";").replace("'", " ")
     row_as_array = [e.strip() for e in replaced.split(SEPARATOR)]
     line_arrays_with_partition = row_as_array + [create_synthetic_partition_column(row_as_array, partition_index)]
     ret_val = ",".join(line_arrays_with_partition)

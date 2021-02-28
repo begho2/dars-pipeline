@@ -32,7 +32,11 @@ def batch_datalines_and_process(data_lines_gen: list, limit, batch_size, func):
     while is_not_finished:
         lines_batch=[]
         while is_not_finished and (len(lines_batch) < batch_size):
-            line = next(data_lines_gen)
+            try:
+                line = next(data_lines_gen)
+            except StopIteration:
+                print(f"Reached final line:{line}")
+                is_not_finished = False
             # print(f"{totali}: {line}")
             if (line is None or line == "") or (len(line) < 5):
                 print(f"Reached final line: {line}")
