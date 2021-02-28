@@ -1,4 +1,11 @@
 # Summary
+
+## TODO
+
+- Fix unit testing system for airflow
+- Fix github actions
+- Fix documentation
+
 ## MODULES
 * Rootdir - python env setup (pipenv and pytest)
     * airflow_src - contains dags and python functions for those dags
@@ -8,7 +15,7 @@
     * docker-spark-airflow - scala code for ingesting hes zips and transforming to parq
 
 
-#Setup
+## Setup
 change directory to your local sandbox and git clone the project there
 cd into the project and setup up the python virtual environment
 
