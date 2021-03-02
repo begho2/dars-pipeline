@@ -2,22 +2,24 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 DEBUG = False
 
-def exec_on_db(DB_PROPERTIES, DATA_DETAILS, func):
-  import psycopg2
-  con = psycopg2.connect(
-    dbname=DB_PROPERTIES['db_name'], 
-    user=DB_PROPERTIES['user'], 
-    password=DB_PROPERTIES['password'],
-    host=DB_PROPERTIES['hostname'], 
-    port=DB_PROPERTIES['port']
-  )
-  try:
-    return func(con, DATA_DETAILS)
-  finally:
-    con.commit()
-    con.close()
+def validate_db_con(func):
+  def exec_on_db(DB_PROPERTIES, DATA_DETAILS, func):
+    import psycopg2
+    con = psycopg2.connect(
+      dbname=DB_PROPERTIES['db_name'], 
+      user=DB_PROPERTIES['user'], 
+      password=DB_PROPERTIES['password'],
+      host=DB_PROPERTIES['hostname'], 
+      port=DB_PROPERTIES['port']
+    )
+    try:
+      return func(con, DATA_DETAILS)
+    finally:
+      con.commit()
+      con.close()
+  return exec_on_db
 
-
+@validate_db_con
 def create_database(con, DATA_DETAILS):
   # db_name = DATA_DETAILS["db_name"]
   db_name = 'airflow'
@@ -30,7 +32,7 @@ def create_database(con, DATA_DETAILS):
     cursor.execute(f'CREATE DATABASE {db_name}')
     print(f"Database {db_name} created successfully")
 
-
+@validate_db_con
 def create_master_table(conn, DATA_DETAILS):
   columns = DATA_DETAILS["columns"]
   table_name = DATA_DETAILS["table_name"]
@@ -49,7 +51,7 @@ create table if not exists {table_name} (
   print("Table created successfully")
 
 
-
+@validate_db_con
 def drop_table(conn, DATA_DETAILS):
   table_name = DATA_DETAILS["table_name"]
   ddl = f"drop table if exists {table_name}"
@@ -58,6 +60,7 @@ def drop_table(conn, DATA_DETAILS):
   cur.execute(ddl)
   print("Table dropped succesfully")
 
+@validate_db_con
 def truncate_table(conn, DATA_DETAILS):
   table_name = DATA_DETAILS["table_name"]
   ddl = f"truncate table {table_name}"
@@ -66,6 +69,7 @@ def truncate_table(conn, DATA_DETAILS):
   cur.execute(ddl)
   print("Table truncated succesfully")
 
+@validate_db_con
 def analyze_table(conn, DATA_DETAILS):
   table_name = DATA_DETAILS["table_name"]
   ddl = f"analyze {table_name}"
@@ -80,7 +84,7 @@ def get_sensible_partitions()->list:
   dates = [f"{year}{month}" for year in range(2015, 2021) for month in months ]
   return dates + ["DEFAULT"]
 
-
+@validate_db_con
 def create_partitions(conn, DATA_DETAILS):
   tableName = DATA_DETAILS["table_name"]
   def create_partition_ddl(p):
@@ -99,7 +103,7 @@ def create_partitions(conn, DATA_DETAILS):
     cur.execute(ddl)
     print("Partition created successfully")
 
-
+@validate_db_con
 def insert_values(conn, DATA_DETAILS):
   tableName = DATA_DETAILS["table_name"]
   columns = DATA_DETAILS["columns"]
@@ -119,7 +123,7 @@ def insert_values(conn, DATA_DETAILS):
   cur = conn.cursor()
   cur.execute(insertSql)
 
-
+@validate_db_con
 def select_partition_counts(con, DATA_DETAILS):
   table_name = DATA_DETAILS["table_name"]
   partition_column = DATA_DETAILS["partition_column"]
