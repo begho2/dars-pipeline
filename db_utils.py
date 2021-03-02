@@ -56,7 +56,7 @@ def create_master_table(conn, DATA_DETAILS):
   partition_column = DATA_DETAILS["partition_column"]
   schema = (",\n").join([f"{c} varchar not null" for c in columns])
 
-  create_table_sql = f"""
+create_table_sql = f"""
 create table if not exists {table_name} (
     {schema}
 ) partition by list ({partition_column});
